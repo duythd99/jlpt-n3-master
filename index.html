@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>JLPT N3 Master 🌸</title>
+    
+    <!-- Meta tags tối ưu PWA và iOS Toàn màn hình -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="JLPT N3">
+    <link rel="apple-touch-icon" href="icon.png">
+    
+    <!-- Liên kết manifest -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Thư viện đọc Excel (Sẽ được Service Worker tự động cache offline) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #d63384;
+            --secondary: #ffb3c6;
+            --bg: #ffe6ea;
+            --text: #333;
+            --card-bg: #FFF;
+            --border-color: #ffb3c6;
+        }
+
+        /* Giao diện Chế độ tối (Dark Mode) */
+        body.dark-mode {
+            --primary: #ff69b4;
+            --secondary: #4a2834;
+            --bg: #121212;
+            --text: #f5f5f5;
+            --card-bg: #1e1e1e;
+            --border-color: #444;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: calc(env(safe-area-inset-top) + 10px) 10px calc(env(safe-area-inset-bottom) + 10px) 10px;
+            display: flex;
+            justify-content: center;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        
+        .app-container {
+            width: 100%;
+            max-width: 650px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            padding: 16px;
+            box-sizing: border-box;
+        }
+        h1 { text-align: center; color: var(--primary); margin-top: 0; font-size: 26px; }
+        
+        .file-uploader {
+            background: rgba(255, 240, 243, 0.5);
+            border: 2px dashed var(--secondary);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        body.dark-mode .file-uploader { background: #2d1f24; }
+        .file-uploader input { display: none; }
+        .file-uploader label {
+            background: var(--primary); color: white; padding: 12px 24px; 
+            border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 15px;
+            display: inline-block; min-height: 20px;
+        }
+
+        .controls { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        .controls-row { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        select { padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 16px; outline: none; width: 60%; background: var(--card-bg); color: var(--text); }
+
+        .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px; }
+        .tab-btn {
+            flex: 1; padding: 12px 6px; background: rgba(255, 240, 243, 0.5); border: 1px solid var(--border-color); border-radius: 8px;
+            cursor: pointer; font-weight: bold; transition: 0.2s; color: var(--primary); text-align: center;
+            font-size: 13px; min-width: 80px; min-height: 44px;
+        }
+        body.dark-mode .tab-btn { background: #25181c; }
+        .tab-btn.active { background: var(--primary); color: #fff; border-color: var(--primary);}
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Flashcard mượt mà hơn trên iPhone */
+        .flashcard { width: 100%; height: 380px; perspective: 1000px; margin: 15px 0; cursor: pointer; }
+        .flashcard-inner {
+            position: relative; width: 100%; height: 100%; text-align: center;
+            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); transform-style: preserve-3d;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-radius: 16px;
+        }
+        .flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
+        .flashcard-front, .flashcard-back {
+            position: absolute; width: 100%; height: 100%;
+            -webkit-backface-visibility: hidden; backface-visibility: hidden;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border-radius: 16px; padding: 25px; box-sizing: border-box; background-color: var(--card-bg);
+            border: 2px solid var(--border-color);
+        }
+        .flashcard-front { background-color: var(--primary); color: white; }
+        #fc-front-text { font-size: 56px; font-weight: bold; }
+        .flashcard-back { color: var(--text); transform: rotateY(180deg); align-items: flex-start; justify-content: flex-start; overflow-y: auto;}
+        
+        .card-star { position: absolute; top: 16px; left: 16px; font-size: 26px; cursor: pointer; z-index: 10; line-height: 1; }
+        .card-flip-count { position: absolute; top: 18px; right: 16px; font-size: 14px; font-weight: bold; z-index: 10; line-height: 1; }
+
+        .fb-hanviet { font-size: 22px; color: var(--primary); font-weight: bold; margin-bottom: 4px; text-transform: uppercase; width: 100%; text-align: left; margin-top: 10px;}
+        .fb-kana { font-size: 24px; color: var(--primary); font-weight: bold; margin-bottom: 10px; width: 100%; text-align: left; display: flex; align-items: center; gap: 10px;}
+        .fb-mean { font-size: 20px; font-weight: bold; margin-bottom: 15px; text-align: left; width: 100%; }
+        
+        /* Tăng kích thước nút bấm âm thanh để dễ bấm trúng */
+        .audio-btn {
+            background: rgba(255, 240, 243, 0.8); border: 1px solid var(--border-color); color: var(--primary);
+            border-radius: 50%; width: 44px; height: 44px; font-size: 18px;
+            cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+            transition: 0.2s; vertical-align: middle;
+        }
+        body.dark-mode .audio-btn { background: #333; }
+
+        .blur-box { filter: blur(6px); background: rgba(0,0,0,0.05); border-radius: 6px; padding: 4px 10px; cursor: pointer; transition: 0.2s; display: inline-block; }
+        body.dark-mode .blur-box { background: rgba(255,255,255,0.1); }
+        .blur-box.revealed { filter: none; background: transparent; }
+
+        .fb-same { font-size: 17px; font-weight: bold; margin-bottom: 12px; width: 100%; text-align: left; }
+        .fb-ex { font-size: 17px; border-top: 1px dashed var(--border-color); padding-top: 12px; width: 100%; text-align: left; line-height: 1.6;}
+        .fb-ex-title { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+        .fb-ex-trans { font-size: 16px; font-style: italic; margin-top: 8px; width: 100%; text-align: left; }
+        
+        .fc-nav { display: flex; justify-content: space-between; margin-top: 15px; gap: 10px;}
+        button.action-btn { height: 50px; padding: 10px 20px; background: var(--primary); color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: bold; flex: 1;}
+        
+        .lookup-box { margin-top: 20px; display: flex; justify-content: center; gap: 15px; width: 100%; }
+        .lookup-link { color: var(--primary); text-decoration: none; font-weight: bold; font-size: 14px; min-height: 44px; display: flex; align-items: center;}
+
+        /* Trắc nghiệm & Trò chơi */
+        .quiz-question { font-size: 38px; font-weight: bold; text-align: center; margin-bottom: 20px; color: var(--primary); }
+        .quiz-options { display: flex; flex-direction: column; gap: 12px; }
+        .quiz-option { padding: 16px; background: rgba(255, 240, 243, 0.4); border: 2px solid transparent; border-radius: 10px; cursor: pointer; font-size: 18px; text-align: center; min-height: 24px; color: var(--text); }
+        body.dark-mode .quiz-option { background: #251d21; }
+        .quiz-option.correct { background: #d4edda !important; border-color: #28a745; color: #155724 !important; }
+        .quiz-option.wrong { background: #f8d7da !important; border-color: #dc3545; color: #721c24 !important; }
+        
+        .game-area { position: relative; width: 100%; height: 350px; background: rgba(0,0,0,0.02); border-radius: 12px; overflow: hidden; margin-bottom: 10px; border: 2px solid var(--border-color);}
+        .falling-word { position: absolute; font-size: 34px; font-weight: bold; color: var(--primary); left: 50%; transform: translateX(-50%); white-space: nowrap; }
+        .game-input { width: 100%; padding: 14px; font-size: 18px; border: 2px solid var(--primary); border-radius: 10px; outline: none; margin-bottom: 10px; box-sizing: border-box; background: var(--card-bg); color: var(--text);}
+        .score-board { display: flex; justify-content: space-between; font-size: 16px; font-weight: bold; margin-bottom: 12px; color: var(--primary);}
+
+        /* Danh sách từ vựng */
+        .vocab-table-wrapper { max-height: 400px; overflow-y: auto; overflow-x: auto; border: 1px solid var(--border-color); border-radius: 10px; margin-top: 10px; -webkit-overflow-scrolling: touch; }
+        .vocab-table { width: 100%; border-collapse: collapse; font-size: 14px; text-align: left; }
+        .vocab-table th, .vocab-table td { padding: 12px; border-bottom: 1px solid var(--border-color); color: var(--text); }
+        .vocab-table th { background: var(--primary); color: white; position: sticky; top: 0; z-index: 5; }
+
+        /* Tiện ích bổ sung: Nút Dark Mode */
+        .theme-toggle {
+            display: flex; justify-content: flex-end; margin-bottom: 10px;
+        }
+        .theme-toggle button {
+            background: none; border: 1px solid var(--border-color); color: var(--text); padding: 6px 12px; border-radius: 20px; font-size: 12px; cursor: pointer;
+        }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 22px; }
+            #fc-front-text { font-size: 44px; }
+            .quiz-question { font-size: 32px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="theme-toggle">
+        <button onclick="toggleDarkMode()">🌙 Chế độ tối</button>
+    </div>
+    
+    <h1>JLPT N3 Master 🌸</h1>
+    
+    <div class="file-uploader">
+        <span style="font-size: 13px; display: block; margin-bottom: 8px;">Cập nhật dữ liệu từ file Excel của bạn:</span>
+        <label for="excel-upload">📂 Chọn File Excel Dữ Liệu</label>
+        <input type="file" id="excel-upload" accept=".xlsx, .xls" onchange="handleExcelUpload(event)">
+    </div>
+
+    <div class="controls">
+        <div class="controls-row">
+            <label for="sheet-select"><b>Chọn bài học:</b></label>
+            <select id="sheet-select" onchange="loadSheet()"></select>
+        </div>
+        <div class="controls-row" style="margin-top: 5px;">
+            <label style="font-weight: bold; color: var(--primary); cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+                <input type="checkbox" id="chk-starred" onchange="toggleStarredFilter()" style="transform: scale(1.2); cursor: pointer;"> ⭐ Chỉ học từ đã đánh dấu
+            </label>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('tab-flashcard', this)">Flashcard</button>
+        <button class="tab-btn" onclick="switchTab('tab-quiz', this)">Trắc Nghiệm</button>
+        <button class="tab-btn" onclick="switchTab('tab-typing', this)">Gõ Từ</button>
+        <button class="tab-btn" onclick="switchTab('tab-falling', this)">Kanji Rơi</button>
+        <button class="tab-btn" onclick="switchTab('tab-manager', this)">Xem Danh Sách</button>
+    </div>
+
+    <!-- FLASHCARD -->
+    <div id="tab-flashcard" class="tab-content active">
+        <div class="flashcard" onclick="flipCard()">
+            <div class="flashcard-inner" id="fc-inner">
+                <div class="flashcard-front">
+                    <div class="card-star" onclick="toggleStar(event)">☆</div>
+                    <div class="card-flip-count">👁️ 0</div>
+                    <div id="fc-front-text"></div>
+                </div>
+                <div class="flashcard-back">
+                    <div class="card-star" onclick="toggleStar(event)">☆</div>
+                    <div class="card-flip-count">👁️ 0</div>
+                    
+                    <div class="fb-hanviet" id="fc-hanviet"></div>
+                    <div class="fb-kana">
+                        <span id="fc-kana"></span>
+                        <button class="audio-btn" id="btn-speak-word" onclick="speakCurrentWord(event)">🔊</button>
+                    </div>
+                    <div class="fb-mean" id="fc-meaning"></div>
+                    
+                    <div class="fb-same" id="fc-same-box" style="display:none;">
+                        Từ đồng nghĩa: <span class="blur-box" id="fc-same" onclick="revealBlur(event, this)"></span>
+                    </div>
+                    
+                    <div class="fb-ex" id="fc-ex-box">
+                        <div class="fb-ex-title">
+                            <b>Ví dụ:</b> 
+                            <button class="audio-btn" id="btn-speak-ex" onclick="speakCurrentExample(event)">🔊</button>
+                        </div>
+                        <span id="fc-ex-jp" style="display: block; margin-bottom: 4px; font-weight: 500;"></span>
+                        <div class="fb-ex-trans">Dịch: <span class="blur-box" id="fc-ex-vi" onclick="revealBlur(event, this)"></span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="fc-nav">
+            <button class="action-btn" onclick="prevCard()">&#8592; Trước</button>
+            <button class="action-btn" onclick="shuffleCards()" style="background: #6c757d;">🔀 Trộn Thẻ</button>
+            <button class="action-btn" onclick="nextCard()">Tiếp &#8594;</button>
+        </div>
+        <div style="text-align: center; margin-top: 12px; font-weight: bold; color: var(--primary);" id="fc-counter">1 / 1</div>
+        
+        <div class="lookup-box">
+            <a id="fc-gemini" class="lookup-link" target="_blank" href="#">🔍 Tra Gemini</a>
+            <span style="color: var(--border-color); line-height:44px;">|</span>
+            <a id="fc-mazii" class="lookup-link" target="_blank" href="#">📖 Từ điển Mazii</a>
+        </div>
+    </div>
+
+    <!-- QUIZ -->
+    <div id="tab-quiz" class="tab-content">
+        <div class="score-board">
+            <span>Câu hỏi: <span id="quiz-counter">1/10</span></span>
+            <span>Điểm: <span id="quiz-score">0</span></span>
+        </div>
+        <div class="quiz-question" id="quiz-q"></div>
+        <div class="quiz-options" id="quiz-opts"></div>
+        <button class="action-btn" style="margin-top:20px; width:100%; display:none;" id="quiz-next-btn" onclick="nextQuiz()">Câu tiếp theo</button>
+    </div>
+
+    <!-- TYPING -->
+    <div id="tab-typing" class="tab-content">
+        <div class="score-board">
+            <span>Điểm: <span id="type-score">0</span></span>
+        </div>
+        <p style="text-align: center; font-size: 14px;">Gõ cách đọc (Kana) hoặc Ý nghĩa của từ.</p>
+        <div class="quiz-question" id="type-q"></div>
+        <input type="text" id="type-input" class="game-input" placeholder="Gõ câu trả lời và nhấn Enter..." onkeypress="checkTyping(event)">
+        <p id="type-feedback" style="text-align:center; font-weight:bold; height:20px; margin-top:10px;"></p>
+    </div>
+
+    <!-- FALLING KANJI -->
+    <div id="tab-falling" class="tab-content">
+        <div class="score-board">
+            <span>Điểm: <span id="fall-score">0</span></span>
+            <span style="color: #dc3545;">⏱️ Còn lại: <span id="fall-timer">30</span>s</span>
+            <span>Mạng: <span id="fall-lives">3</span> ❤️</span>
+        </div>
+        <div class="game-area" id="fall-area">
+            <div id="falling-word" class="falling-word"></div>
+        </div>
+        <input type="text" id="fall-input" class="game-input" placeholder="Gõ ý nghĩa hoặc cách đọc..." onkeypress="checkFall(event)">
+        <button class="action-btn" style="margin-top:10px; width:100%;" id="fall-start-btn" onclick="startFallingGame()">▶ Bắt đầu chơi (30 giây)</button>
+    </div>
+
+    <!-- VIEW LIST -->
+    <div id="tab-manager" class="tab-content">
+        <h3 id="manager-title">Danh sách từ vựng</h3>
+        <div class="vocab-table-wrapper">
+            <table class="vocab-table">
+                <thead id="vocab-list-thead"></thead>
+                <tbody id="vocab-list-tbody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Đăng ký Service Worker tối ưu hóa Offline cho PWA
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('Service Worker đã sẵn sàng!', reg.scope))
+                .catch(err => console.log('Lỗi đăng ký Service Worker:', err));
+        });
+    }
+
+    const KANJI_HV_MAP = {
+        "包": "BAO", "得": "ĐẮC", "意": "Ý", "発": "PHÁT", "見": "KIẾN", "表": "BIỂU", 
+        "件": "KIỆN", "通": "THÔNG", "勤": "CẦN", "岩": "NHAM", "努": "NỖ", "力": "LỰC", 
+        "首": "THỦ", "都": "ĐÔ", "戻": "LỆ", "帰": "QUY", "会": "HỘI", "社": "XÃ",
+        "電": "ĐIỆN", "車": "XA", "駅": "DỊCH", "歩": "BỘ", "走": "TẨU", "旅": "LỮ",
+        "館": "QUÁN", "屋": "ỐC", "店": "TIẾM", "学": "HỌC", "校": "HIỆU", "先": "TIÊN",
+        "生": "SINH", "高": "CAO", "大": "ĐẠI", "小": "TIỂU", "友": "HỮU", "達": "ĐẠT",
+        "時": "THỜI", "間": "GIAN", "週": "CHU", "月": "NGUYỆT", "年": "NIÊN", "日": "NHẬT",
+        "本": "BẢN", "語": "NGỮ", "英": "ANH", "国": "QUỐC", "何": "HÀ", "男": "NAM",
+        "女": "NỮ", "子": "TỬ", "父": "PHỤ", "母": "MẪU", "毎": "MỖI", "海": "HẢI",
+        "山": "SƠN", "川": "XUYÊN", "田": "ĐIỀN", "天": "THIÊN", "空": "KHÔNG", "気": "KHÍ",
+        "雨": "VŨ", "雪": "TUYẾT", "風": "PHONG", "花": "HOA", "茶": "TRÀ", "肉": "NHỤC",
+        "魚": "NGƯ", "水": "THỦY", "湯": "THANG", "野": "DÃ", "菜": "THÁI", "理": "LÝ",
+        "料": "LIỆU", "飯": "PHẠN", "味": "VỊ", "色": "SẮC", "赤": "XÍCH", "青": "THANH",
+        "白": "BẠCH", "黒": "HẮC", "新": "TÂN", "古": "CỔ", "長": "TRƯỜNG", "短": "ĐOẢN",
+        "近": "CẬN", "遠": "VIỄN", "朝": "TRIÊU", "昼": "TRÚ", "晩": "VÃN", "夜": "DẠ",
+        "前": "TIỀN", "後": "HẬU", "左": "TẢ", "右": "HỮU", "東": "ĐÔNG", "西": "TÂY",
+        "南": "NAM", "北": "BẮC", "外": "NGOẠI", "内": "NỘI", "名": "DANH", "解": "GIẢI",
+        "決": "QUYẾT", "準": "CHUẨN", "備": "BỊ", "経": "KINH", "験": "NGHIỆM", "関": "QUAN",
+        "係": "HỆ", "定": "ĐỊNH", "結": "KẾT", "婚": "HÔN", "切": "THIẾT", 
+        "上": "THƯỢNG", "手": "THỦ", "紙": "CHỈ", "最": "TỐI", "初": "SƠ"
+    };
+
+    function autoGetHanViet(str) {
+        if(!str) return "";
+        let res = [];
+        for(let char of str) {
+            if(/[\u4e00-\u9faf]/.test(char)) {
+                if(KANJI_HV_MAP[char]) res.push(KANJI_HV_MAP[char]);
+            }
+        }
+        return res.join(" ");
+    }
+
+    // Đã sửa dữ liệu lỗi 'しゅto' thành 'しゅto' -> 'しゅと' ở Mondai_5
+    const defaultDb = {
+        "Mondai_1": [{ kanji: "包む", kana: "つつむ", meaning: "gói", exampleJp: "プレゼントはきれいな紙で包んであった", exampleVi: "Quà tặng được gói bằng giấy đẹp.", synonym: "", flipCount: 0, starred: false }],
+        "Mondai_2": [{ kanji: "得意", kana: "とくい", meaning: "giỏi", exampleJp: "彼はダンスが得意 da", exampleVi: "Anh ấy nhảy giỏi.", synonym: "", flipCount: 0, starred: false }],
+        "Mondai_3": [{ kanji: "発見", kana: "はっけん", meaning: "phát hiện", exampleJp: "新しい星が発見された", exampleVi: "Ngôi sao mới đã được phát hiện.", synonym: "", flipCount: 0, starred: false }],
+        "Mondai_4": [{ kanji: "戻る", kana: "もđる", meaning: "quay lại", exampleJp: "すぐに席に戻る", exampleVi: "Quay lại chỗ ngồi ngay lập tức.", synonym: "帰る", flipCount: 0, starred: false }],
+        "Mondai_5": [{ kanji: "首都", kana: "しゅと", meaning: "thủ đô", exampleJp: "日本の首都は国内ですか", exampleVi: "Thủ đô của Nhật ở đâu?", synonym: "", flipCount: 0, starred: false }]
+    };
+
+    let db = JSON.parse(localStorage.getItem('jlpt_n3_clean_db')) || defaultDb;
+    let currentList = [];
+    let activeWordIndex = 0;
+    let currentSheetName = "";
+
+    window.onload = () => { 
+        initSheetSelect(); 
+        // Kích hoạt nạp voice sẵn sàng cho iOS Safari
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.getVoices();
+        }
+        if(localStorage.getItem('darkMode') === 'enabled') {
+            document.body.classList.add('dark-mode');
+        }
+    };
+
+    function toggleDarkMode() {
+        document.body.classList.toggle('dark-mode');
+        if(document.body.classList.contains('dark-mode')) {
+            localStorage.setItem('darkMode', 'enabled');
+        } else {
+            localStorage.setItem('darkMode', 'disabled');
+        }
+    }
+
+    function initSheetSelect() {
+        const select = document.getElementById('sheet-select');
+        select.innerHTML = '';
+        for (const sheet in db) {
+            let opt = document.createElement('option');
+            opt.value = sheet; opt.innerHTML = sheet; select.appendChild(opt);
+        }
+        loadSheet();
+    }
+
+    function handleExcelUpload(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const data = new Uint8Array(event.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const newDb = {};
+
+            workbook.SheetNames.forEach(sheetName => {
+                const worksheet = workbook.Sheets[sheetName];
+                const sheetData = [];
+                let rowIndex = 2; 
+                let emptyStreak = 0; 
+
+                while (emptyStreak < 40) {
+                    const cellA = worksheet[XLSX.utils.encode_cell({r: rowIndex - 1, c: 0})];
+                    const valA = cellA && cellA.v !== undefined ? String(cellA.v).trim() : "";
+                    
+                    if (valA) {
+                        emptyStreak = 0; 
+                        const cellB = worksheet[XLSX.utils.encode_cell({r: rowIndex - 1, c: 1})];
+                        const cellC = worksheet[XLSX.utils.encode_cell({r: rowIndex - 1, c: 2})];
+                        const cellD = worksheet[XLSX.utils.encode_cell({r: rowIndex - 1, c: 3})];
+                        const cellE = worksheet[XLSX.utils.encode_cell({r: rowIndex - 1, c: 4})];
+                        const cellF = worksheet[XLSX.utils.encode_cell({r: rowIndex - 1, c: 5})];
+                        
+                        sheetData.push({
+                            kanji: valA,
+                            kana: cellB && cellB.v !== undefined ? String(cellB.v).trim() : "",
+                            meaning: cellC && cellC.v !== undefined ? String(cellC.v).trim() : "",
+                            exampleJp: cellD && cellD.v !== undefined ? String(cellD.v).trim() : "",
+                            exampleVi: cellE && cellE.v !== undefined ? String(cellE.v).trim() : "",
+                            synonym: cellF && cellF.v !== undefined ? String(cellF.v).trim() : "",
+                            flipCount: 0,
+                            starred: false
+                        });
+                    } else { emptyStreak++; }
+                    rowIndex++;
+                }
+                if (sheetData.length > 0) newDb[sheetName] = sheetData;
+            });
+
+            if (Object.keys(newDb).length > 0) {
+                db = newDb;
+                saveToLocalStorage();
+                alert("🎉 Cập nhật thành công dữ liệu từ file Excel!");
+                initSheetSelect();
+            } else { alert("Không tìm thấy dữ liệu hợp lệ!"); }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    function loadSheet() {
+        currentSheetName = document.getElementById('sheet-select').value || Object.keys(db)[0];
+        document.getElementById('chk-starred').checked = false;
+        currentList = [...(db[currentSheetName] || [])];
+        activeWordIndex = 0;
+        updateFlashcard();
+        initQuiz();
+        initTyping();
+        resetFallingGame();
+        renderManagerList();
+    }
+
+    function saveToLocalStorage() {
+        localStorage.setItem('jlpt_n3_clean_db', JSON.stringify(db));
+    }
+
+    function switchTab(tabId, btn) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        btn.classList.add('active');
+        if(tabId === 'tab-manager') renderManagerList();
+    }
+
+    function shuffleCards() {
+        if(currentList.length <= 1) return;
+        for (let i = currentList.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [currentList[i], currentList[j]] = [currentList[j], currentList[i]];
+        }
+        activeWordIndex = 0;
+        updateFlashcard();
+    }
+
+    function toggleStarredFilter() {
+        const isChecked = document.getElementById('chk-starred').checked;
+        const fullList = db[currentSheetName] || [];
+        if (isChecked) {
+            const starred = fullList.filter(w => w.starred);
+            if (starred.length === 0) {
+                alert("Bài học này chưa có từ nào được đánh dấu sao lưu ý!");
+                document.getElementById('chk-starred').checked = false;
+                currentList = [...fullList];
+            } else { currentList = starred; }
+        } else { currentList = [...fullList]; }
+        activeWordIndex = 0;
+        updateFlashcard();
+    }
+
+    function toggleStar(event) {
+        event.stopPropagation();
+        if(currentList.length === 0) return;
+        const word = currentList[activeWordIndex];
+        word.starred = !word.starred;
+        saveToLocalStorage();
+        updateStarUI();
+    }
+
+    function updateStarUI() {
+        if(currentList.length === 0) return;
+        const word = currentList[activeWordIndex];
+        const starIcon = word.starred ? "⭐" : "☆";
+        
+        const frontStar = document.querySelector('.flashcard-front .card-star');
+        frontStar.innerText = starIcon;
+        frontStar.style.color = word.starred ? "#ffc107" : "#ffffff";
+
+        const backStar = document.querySelector('.flashcard-back .card-star');
+        backStar.innerText = starIcon;
+        backStar.style.color = word.starred ? "#ffc107" : "#ccc";
+    }
+
+    // Tối ưu hóa phát âm tiếng Nhật mượt mà trên iPhone Safari
+    function speakJapaneseText(event, text) {
+        if (event) event.stopPropagation(); 
+        if (!text) return;
+        
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        
+        // Chỉ định chuẩn bộ voice giọng Nhật có sẵn trên thiết bị
+        const voices = window.speechSynthesis.getVoices();
+        const jaVoice = voices.find(v => v.lang === 'ja-JP' || v.lang.startsWith('ja-'));
+        if (jaVoice) utterance.voice = jaVoice;
+        
+        utterance.lang = 'ja-JP'; 
+        utterance.rate = 0.82; // Tốc độ chuẩn sư phạm
+        window.speechSynthesis.speak(utterance);
+    }
+
+    function speakCurrentWord(event) {
+        if(currentList.length === 0) return;
+        const word = currentList[activeWordIndex];
+        speakJapaneseText(event, word.kana || word.kanji);
+    }
+    
+    function speakCurrentExample(event) {
+        if(currentList.length === 0) return;
+        const word = currentList[activeWordIndex];
+        speakJapaneseText(event, word.exampleJp);
+    }
+
+    function updateFlashcard() {
+        if(currentList.length === 0) {
+            document.getElementById('fc-front-text').innerText = "Trống";
+            document.getElementById('fc-counter').innerText = "0 / 0";
+            return;
+        }
+        const word = currentList[activeWordIndex];
+
+        document.getElementById('fc-front-text').innerText = word.kanji;
+        
+        const countText = `👁️ ${word.flipCount || 0}`;
+        document.querySelector('.flashcard-front .card-flip-count').innerText = countText;
+        document.querySelector('.flashcard-back .card-flip-count').innerText = countText;
+
+        updateStarUI();
+
+        const hvText = autoGetHanViet(word.kanji);
+        const hvEl = document.getElementById('fc-hanviet');
+        if(hvText) { hvEl.innerText = hvText; hvEl.style.display = 'block'; } else { hvEl.style.display = 'none'; }
+
+        document.getElementById('fc-kana').innerText = word.kana ? `[ ${word.kana} ]` : '';
+        document.getElementById('fc-meaning').innerText = word.meaning;
+
+        const sameBox = document.getElementById('fc-same-box');
+        const sameText = document.getElementById('fc-same');
+        if (word.synonym) {
+            sameText.innerText = word.synonym; sameText.classList.remove('revealed'); sameBox.style.display = 'block';
+        } else { sameBox.style.display = 'none'; }
+
+        const exBox = document.getElementById('fc-ex-box');
+        const exViText = document.getElementById('fc-ex-vi');
+        if (word.exampleJp) {
+            document.getElementById('fc-ex-jp').innerText = word.exampleJp;
+            if (word.exampleVi) {
+                exViText.innerText = word.exampleVi; exViText.classList.remove('revealed'); exViText.parentElement.style.display = 'block';
+            } else { exViText.parentElement.style.display = 'none'; }
+            exBox.style.display = 'block';
+        } else { exBox.style.display = 'none'; }
+
+        document.getElementById('fc-counter').innerText = `${activeWordIndex + 1} / ${currentList.length}`;
+        document.getElementById('fc-inner').parentElement.classList.remove('flipped');
+        
+        const queryText = `Giải thích chi tiết từ vựng tiếng Nhật N3 sau đây giúp mình: Từ "${word.kanji}" (${word.kana}), nghĩa là "${word.meaning}". Hãy phân tích ngữ cảnh sử dụng dựa trên câu ví dụ sau: "${word.exampleJp}"`;
+        document.getElementById('fc-gemini').href = `https://gemini.google.com/?q=${encodeURIComponent(queryText)}`;
+        document.getElementById('fc-mazii').href = `https://mazii.net/vi-VN/search/word/ja/${encodeURIComponent(word.kanji)}`;
+    }
+    
+    function flipCard() { 
+        const cardInner = document.getElementById('fc-inner');
+        const willShowBack = cardInner.parentElement.classList.toggle('flipped');
+        
+        if (willShowBack && currentList.length > 0) {
+            const word = currentList[activeWordIndex];
+            word.flipCount = (word.flipCount || 0) + 1;
+            saveToLocalStorage();
+            
+            const countText = `👁️ ${word.flipCount}`;
+            document.querySelector('.flashcard-front .card-flip-count').innerText = countText;
+            document.querySelector('.flashcard-back .card-flip-count').innerText = countText;
+        }
+    }
+
+    function revealBlur(event, element) { event.stopPropagation(); element.classList.toggle('revealed'); }
+    function nextCard() { if (activeWordIndex < currentList.length - 1) activeWordIndex++; else activeWordIndex = 0; updateFlashcard(); }
+    function prevCard() { if (activeWordIndex > 0) activeWordIndex--; else activeWordIndex = currentList.length - 1; updateFlashcard(); }
+
+    /* TRẮC NGHIỆM */
+    let quizScore = 0, quizCount = 1, quizCurrentWord = null;
+    function initQuiz() { quizScore = 0; quizCount = 1; document.getElementById('quiz-score').innerText = quizScore; loadNextQuiz(); }
+    function loadNextQuiz() {
+        if(currentList.length === 0) return;
+        document.getElementById('quiz-next-btn').style.display = 'none';
+        document.getElementById('quiz-counter').innerText = `${quizCount} / ${currentList.length}`;
+        quizCurrentWord = currentList[Math.floor(Math.random() * currentList.length)];
+        document.getElementById('quiz-q').innerText = quizCurrentWord.kanji; 
+        
+        let allMeanings = currentList.map(w => w.meaning).filter(m => m && m.trim() !== "");
+        let uniqueMeanings = [...new Set(allMeanings)];
+        let options = [quizCurrentWord.meaning];
+        
+        let distractors = uniqueMeanings.filter(m => m !== quizCurrentWord.meaning).sort(() => Math.random() - 0.5);
+        let maxOptions = Math.min(4, uniqueMeanings.length);
+        for(let i = 0; i < maxOptions - 1; i++) { if(distractors[i]) options.push(distractors[i]); }
+        options.sort(() => Math.random() - 0.5);
+        
+        const optsDiv = document.getElementById('quiz-opts'); optsDiv.innerHTML = '';
+        options.forEach(opt => {
+            let div = document.createElement('div'); div.className = 'quiz-option'; div.innerText = opt;
+            div.onclick = () => checkQuiz(div, opt); optsDiv.appendChild(div);
+        });
+    }
+    function checkQuiz(div, selected) {
+        if(document.getElementById('quiz-next-btn').style.display === 'block') return;
+        if(selected === quizCurrentWord.meaning) { 
+            div.classList.add('correct'); quizScore += 10; document.getElementById('quiz-score').innerText = quizScore; 
+        } else {
+            div.classList.add('wrong');
+            Array.from(document.getElementById('quiz-opts').children).forEach(child => {
+                if(child.innerText === quizCurrentWord.meaning) child.classList.add('correct');
+            });
+        }
+        document.getElementById('quiz-next-btn').style.display = 'block';
+    }
+    function nextQuiz() { quizCount++; loadNextQuiz(); }
+
+    /* GÕ TỪ */
+    let typeScore = 0, typeCurrentWord = null;
+    function initTyping() { typeScore = 0; document.getElementById('type-score').innerText = typeScore; loadNextType(); }
+    function loadNextType() {
+        if(currentList.length === 0) return;
+        typeCurrentWord = currentList[Math.floor(Math.random() * currentList.length)];
+        document.getElementById('type-q').innerText = typeCurrentWord.kanji;
+        const inputEl = document.getElementById('type-input');
+        inputEl.value = ''; inputEl.disabled = false; document.getElementById('type-feedback').innerText = ''; inputEl.focus();
+    }
+    function checkTyping(e) {
+        if(e.key === 'Enter') {
+            const inputEl = document.getElementById('type-input');
+            const val = inputEl.value.trim().toLowerCase();
+            inputEl.disabled = true;
+            if(val === typeCurrentWord.kana.toLowerCase() || val === typeCurrentWord.meaning.toLowerCase()) {
+                typeScore += 10; document.getElementById('type-score').innerText = typeScore;
+                document.getElementById('type-feedback').style.color = '#28a745'; document.getElementById('type-feedback').innerText = 'Chính xác! 🎉';
+                setTimeout(loadNextType, 1200); 
+            } else {
+                document.getElementById('type-feedback').style.color = '#dc3545'; document.getElementById('type-feedback').innerText = `Đáp án: ${typeCurrentWord.kana} | Nghĩa: ${typeCurrentWord.meaning}`;
+                setTimeout(loadNextType, 2500); 
+            }
+        }
+    }
+
+    /* KANJI RƠI VỚI HIỆU NĂNG TỐI ƯU */
+    let fallInterval, gameTimerInterval, fallPos = 0, fallScore = 0, fallLives = 3, fallCurrentWord = null, isFalling = false, gameTimeLeft = 30;
+    
+    function resetFallingGame() {
+        clearInterval(fallInterval); clearInterval(gameTimerInterval);
+        document.getElementById('falling-word').style.display = 'none';
+        document.getElementById('fall-start-btn').style.display = 'block'; document.getElementById('fall-input').disabled = true;
+        isFalling = false; fallScore = 0; fallLives = 3; gameTimeLeft = 30; updateFallBoard();
+    }
+    
+    function startFallingGame() {
+        if(currentList.length === 0) return;
+        fallScore = 0; fallLives = 3; gameTimeLeft = 30; updateFallBoard();
+        document.getElementById('fall-start-btn').style.display = 'none'; document.getElementById('fall-input').disabled = false; document.getElementById('fall-input').focus();
+        
+        gameTimerInterval = setInterval(() => {
+            gameTimeLeft--;
+            document.getElementById('fall-timer').innerText = gameTimeLeft;
+            if(gameTimeLeft <= 0) { endFallingGame(); }
+        }, 1000);
+        
+        spawnFallingWord();
+    }
+
+    function endFallingGame() {
+        clearInterval(fallInterval); clearInterval(gameTimerInterval);
+        document.getElementById('falling-word').style.display = 'none';
+        alert(`⏱️ Hết giờ! Kết quả điểm của bạn: ${fallScore}`);
+        resetFallingGame();
+    }
+
+    function spawnFallingWord() {
+        if(fallLives <= 0 || gameTimeLeft <= 0) return;
+        fallCurrentWord = currentList[Math.floor(Math.random() * currentList.length)];
+        const el = document.getElementById('falling-word'); el.innerText = fallCurrentWord.kanji; el.style.display = 'block';
+        fallPos = 0; el.style.top = fallPos + 'px'; isFalling = true; clearInterval(fallInterval);
+        
+        fallInterval = setInterval(() => {
+            fallPos += 2; 
+            el.style.top = fallPos + 'px';
+            if(fallPos > 310) { 
+                clearInterval(fallInterval); 
+                fallLives--; 
+                updateFallBoard(); 
+                if(fallLives <= 0){
+                    alert(`Hết sinh mạng! Điểm số: ${fallScore}`); 
+                    resetFallingGame();
+                } else {
+                    spawnFallingWord();
+                } 
+            }
+        }, 30);
+    }
+
+    function checkFall(e) {
+        if(!isFalling || gameTimeLeft <= 0) return;
+        if(e.key === 'Enter') {
+            const val = document.getElementById('fall-input').value.trim().toLowerCase();
+            if(val === fallCurrentWord.kana.toLowerCase() || val === fallCurrentWord.meaning.toLowerCase()) {
+                clearInterval(fallInterval); fallScore += 10; updateFallBoard();
+                document.getElementById('fall-input').value = ''; document.getElementById('falling-word').style.display = 'none';
+                spawnFallingWord();
+            } else { document.getElementById('fall-input').value = ''; }
+        }
+    }
+    function updateFallBoard() { 
+        document.getElementById('fall-score').innerText = fallScore; 
+        document.getElementById('fall-lives').innerText = fallLives;
+        document.getElementById('fall-timer').innerText = gameTimeLeft;
+    }
+
+    /* XEM DANH SÁCH (Đã tối ưu hóa innerHTML tăng tốc độ hiển thị) */
+    function renderManagerList() {
+        document.getElementById('manager-title').innerText = `Bài học: ${currentSheetName}`;
+        const thead = document.getElementById('vocab-list-thead');
+        const tbody = document.getElementById('vocab-list-tbody');
+        const isMondai4 = currentSheetName.toLowerCase().includes("4");
+        
+        let headerHtml = `<tr><th style="text-align: center; width: 60px;">Excel</th><th>Lưu ý</th><th>Từ vựng</th><th>Cách đọc</th><th>Ý nghĩa</th><th>Ví dụ</th><th>Dịch câu</th>`;
+        if (isMondai4) headerHtml += `<th>Đồng nghĩa</th>`;
+        headerHtml += `</tr>`;
+        thead.innerHTML = headerHtml;
+
+        let rowsHtml = '';
+        const fullList = db[currentSheetName] || [];
+        fullList.forEach((word, index) => {
+            const excelRow = index + 2; 
+            rowsHtml += `
+                <tr>
+                    <td style="text-align: center; font-weight: bold; background: rgba(214, 51, 132, 0.1);">${excelRow}</td>
+                    <td style="text-align: center;">${word.starred ? '⭐' : '☆'}</td>
+                    <td><b>${word.kanji}</b> <small style="color:#888;">(👁️${word.flipCount||0})</small></td>
+                    <td>${word.kana || '-'}</td>
+                    <td>${word.meaning || '-'}</td>
+                    <td>${word.exampleJp || '-'}</td>
+                    <td>${word.exampleVi || '-'}</td>
+                    ${isMondai4 ? `<td><span style="color:var(--primary); font-weight:bold;">${word.synonym || '-'}</span></td>` : ''}
+                </tr>
+            `;
+        });
+        tbody.innerHTML = rowsHtml;
+    }
+</script>
+</body>
+</html>
