@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>JLPT Kanji Master 🌸</title>
+    <title>JLPT N3 🌸 bé Tràm 🌸</title>
     
     <!-- Cấu hình hiển thị App và Icon trên iPhone -->
     <link rel="apple-touch-icon" href="icon.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="JLPT Kanji">
+    <meta name="apple-mobile-web-app-title" content="JLPT N3">
 
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
@@ -52,17 +52,26 @@
             transition: background-color 0.3s, color 0.3s;
         }
 
+        /* ĐÃ SỬA: Căn giữa tiêu đề chính và phụ */
         .header-row {
+            position: relative;
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
+            justify-content: center;
             align-items: center;
+            text-align: center;
             width: 100%;
             max-width: 400px;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
-        h1.title { font-size: 20px; margin: 0; color: var(--primary); }
+        h1.title { font-size: 24px; margin: 0; color: var(--primary); font-weight: bold; }
+        .subtitle { font-size: 18px; margin: 4px 0 0 0; color: var(--primary); font-weight: bold; }
         
+        /* ĐA SỬA: Nút theme đẩy sang góc tuyệt đối để không lệch chữ tiêu đề */
         .theme-toggle-btn {
+            position: absolute;
+            right: 0;
+            top: 4px;
             background: transparent;
             border: none;
             font-size: 22px;
@@ -96,10 +105,11 @@
         }
         #excel-file { display: none; }
 
-        .controls-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; gap: 10px; }
-        select { flex: 1; background-color: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color); padding: 6px 10px; border-radius: 8px; font-size: 14px; }
+        .controls-row { display: flex; align-items: center; justify-content: center; margin-bottom: 8px; gap: 10px; }
+        select { flex: 1; max-width: 280px; background-color: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color); padding: 6px 10px; border-radius: 8px; font-size: 14px; }
         
-        .bookmark-filter { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted); margin-bottom: 10px; cursor: pointer; }
+        /* ĐÃ SỬA: Căn giữa bộ lọc sao */
+        .bookmark-filter { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; color: var(--text-muted); margin-bottom: 12px; cursor: pointer; }
 
         .mode-buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 8px; }
         .mode-btn { background-color: var(--card-bg); color: var(--text-muted); border: 1px solid var(--border-color); padding: 8px 2px; border-radius: 8px; font-size: 12px; cursor: pointer; }
@@ -113,7 +123,9 @@
         
         .flashcard-front, .flashcard-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 16px; padding: 20px; box-sizing: border-box; background-color: var(--card-bg); border: 2px solid var(--border-color); }
         .flashcard-front { background-color: var(--primary); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; transform: rotateY(0deg); -webkit-transform: rotateY(0deg); }
-        .flashcard-back { color: var(--text-color); display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; transform: rotateY(180deg); -webkit-transform: rotateY(180deg); overflow-y: auto; }
+        
+        /* ĐÃ SỬA: Toàn bộ mặt sau thẻ chuyển sang căn giữa đồng đều (center) */
+        .flashcard-back { color: var(--text-color); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transform: rotateY(180deg); -webkit-transform: rotateY(180deg); overflow-y: auto; }
         
         .flashcard.flipped .flashcard-front { visibility: hidden; }
         .flashcard:not(.flipped) .flashcard-back { visibility: hidden; }
@@ -123,11 +135,12 @@
         .eye-icon { right: 15px; font-size: 13px; }
 
         .word-main { font-size: 40px; font-weight: bold; margin: auto 0; }
-        .audio-btn { background: #fff0f3; border: 1px solid #ffb3c6; color: var(--primary); border-radius: 50%; width: 28px; height: 28px; font-size: 12px; cursor: pointer; margin-left: 5px; }
+        .audio-btn { background: #fff0f3; border: 1px solid #ffb3c6; color: var(--primary); border-radius: 50%; width: 28px; height: 28px; font-size: 12px; cursor: pointer; margin-left: 6px; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; }
 
-        .fb-hanviet { font-size: 18px; color: #ff85a2; font-weight: bold; margin-top: 20px; text-transform: uppercase; letter-spacing: 1px; }
-        .fb-kana { font-size: 15px; color: var(--text-muted); font-weight: bold; margin: 4px 0; }
-        .fb-mean { font-size: 16px; font-weight: bold; margin-bottom: 10px; }
+        /* CĂN CHỈNH KHOẢNG CÁCH CHỮ TRONG THẺ */
+        .fb-hanviet { font-size: 22px; color: #ff85a2; font-weight: bold; margin-top: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        .fb-kana { font-size: 17px; color: var(--text-muted); font-weight: bold; margin: 6px 0; display: flex; align-items: center; justify-content: center; }
+        .fb-mean { font-size: 18px; font-weight: bold; margin-bottom: 12px; }
 
         .blur-box { filter: blur(6px); background: var(--blur-bg); border-radius: 4px; padding: 2px 8px; cursor: pointer; color: transparent; display: inline-block; }
         .blur-box.revealed { filter: none; background: transparent; color: inherit; }
@@ -156,25 +169,24 @@
         .vocab-table th, .vocab-table td { padding: 8px; border-bottom: 1px solid var(--border-color); }
         .vocab-table th { background: var(--primary); color: white; position: sticky; top: 0; }
 
-        /* ĐÃ SỬA: Căn chỉnh lại khoảng cách an toàn cho iPhone màn hình tai thỏ / Dynamic Island */
         @media only screen and (max-width: 430px) {
             body { 
                 height: 100dvh!important; 
                 overflow: hidden!important; 
                 justify-content: space-between; 
-                /* Tự động cộng thêm khoảng thụt lề an toàn của cạnh trên và cạnh dưới iOS */
                 padding: calc(15px + env(safe-area-inset-top)) 15px calc(10px + env(safe-area-inset-bottom)) 15px!important; 
             }
-            .flashcard { height: 300px !important; }
-            .word-main { font-size: 34px !important; }
+            .flashcard { height: 310px !important; }
+            .word-main { font-size: 36px !important; }
         }
     </style>
 </head>
 <body>
 
-<!-- Tiêu đề và Nút chuyển đổi Giao diện -->
+<!-- Tiêu đề mới cân đối, căn giữa -->
 <div class="header-row">
-    <h1 class="title">JLPT Kanji Master 🌸</h1>
+    <h1 class="title">JLPT N3 🌸</h1>
+    <div class="subtitle">🌸bé Tràm 🌸</div>
     <button id="theme-toggle" class="theme-toggle-btn" onclick="toggleTheme()">☀️</button>
 </div>
 
@@ -211,17 +223,21 @@
                     <span class="card-icon-top eye-icon" style="color: white;">👁️ 0</span>
                     <div class="word-main" id="fc-front-text">-</div>
                 </div>
+                <!-- Nội dung mặt sau đã được chuyển sang cấu trúc căn giữa đồng bộ -->
                 <div class="flashcard-back">
                     <span class="card-icon-top star-icon" onclick="toggleStar(event)">☆</span>
                     <span class="card-icon-top eye-icon">👁️ 0</span>
                     <div class="fb-hanviet" id="fc-hanviet"></div>
-                    <div class="fb-kana"><span id="fc-kana"></span><button class="audio-btn" onclick="speakCurrentWord(event)">🔊</button></div>
+                    <div class="fb-kana">
+                        <span id="fc-kana"></span>
+                        <button class="audio-btn" onclick="speakCurrentWord(event)">🔊</button>
+                    </div>
                     <div class="fb-mean" id="fc-meaning"></div>
-                    <div style="font-size: 13px; color: var(--primary); margin-bottom: 8px; display:none;" id="fc-same-box">
+                    <div style="font-size: 13px; color: var(--primary); margin-bottom: 10px; display:none;" id="fc-same-box">
                         Từ đồng nghĩa: <span class="blur-box" id="fc-same" onclick="revealBlur(event, this)"></span>
                     </div>
-                    <div style="font-size:13px; border-top:1px dashed var(--border-color); padding-top:6px; width:100%;" id="fc-ex-box">
-                        <span style="font-weight:bold;">Ví dụ: <button class="audio-btn" onclick="speakCurrentExample(event)">🔊</button></span>
+                    <div style="font-size:13px; border-top:1px dashed var(--border-color); padding-top:8px; width:100%;" id="fc-ex-box">
+                        <div style="font-weight:bold; margin-bottom: 2px;">Ví dụ: <button class="audio-btn" onclick="speakCurrentExample(event)">🔊</button></div>
                         <span id="fc-ex-jp" style="display:block; margin:2px 0; font-style:italic;"></span>
                         <span style="color:var(--text-muted);">Dịch: <span class="blur-box" id="fc-ex-vi" onclick="revealBlur(event, this)"></span></span>
                     </div>
@@ -284,7 +300,15 @@
         document.documentElement.setAttribute('data-theme', savedTheme);
     })();
 
-    /* TỪ ĐIỂN HÁN VIỆT HỆ THỐNG DỰ PHÒNG */
+    /* ĐÃ SỬA: Cơ chế kích hoạt âm thanh khi người dùng tương tác lần đầu để mở khóa tiếng trên iPhone (iOS) */
+    document.body.addEventListener('click', function() {
+        if (!window.speechUnlocked) {
+            const initialUtterance = new SpeechSynthesisUtterance('');
+            window.speechSynthesis.speak(initialUtterance);
+            window.speechUnlocked = true;
+        }
+    }, { once: true });
+
     const KANJI_DICTIONARY = {
         "一":"NHẤT","二":"NHỊ","三":"TAM","四":"TỨ","五":"NGŨ","六":"LỤC","七":"THẤT","八":"BÁT","九":"CỬU","十":"THẬP",
         "百":"BÁCH","千":"THIÊN","万":"VẠN","円":"VIÊN","日":"NHẬT","月":"NGUYỆT","火":"HỎA","水":"THỦY","木":"MỘC","金":"KIM",
@@ -317,7 +341,7 @@
     let db = JSON.parse(localStorage.getItem('jlpt_kanji_db')) || {
         "N3_Mondai_Demo": [
             { kanji: "得意", kana: "とくい", meaning: "Giỏi, sở trường, đắc ý", exampleJp: "彼女は料理が得意です。", exampleVi: "Cô ấy nấu ăn giỏi.", synonym: "上手", flipCount: 0, starred: false },
-            { kanji: "包む", kana: "つつむ", meaning: "Gói, bọc", exampleJp: "プレゼントをきれいな紙で包む。", exampleVi: "Gói quà bằng giấy đẹp.", synonym: "", flipCount: 0, starred: false }
+            { kanji: "包む", kana: "つつむ", meaning: "Gói, bọc", exampleJp: "プレゼントကိုきれいな紙で包む。", exampleVi: "Gói quà bằng giấy đẹp.", synonym: "", flipCount: 0, starred: false }
         ]
     };
     let currentList = [], activeWordIndex = 0, currentSheetName = "";
@@ -327,7 +351,6 @@
         initSheetSelect(); 
     };
 
-    /* HÀM ĐỔI CHẾ ĐỘ NỀN */
     function toggleTheme() {
         const currentTheme = document.documentElement.getAttribute('data-theme');
         const newTheme = currentTheme === 'light' ? 'dark' : 'light';
@@ -510,7 +533,14 @@
         activeWordIndex = 0; updateFlashcard();
     }
 
-    function speakJapaneseText(e, text) { if(e) e.stopPropagation(); window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = 'ja-JP'; u.rate = 0.85; window.speechSynthesis.speak(u); }
+    /* ĐÃ SỬA: Tối ưu lại trình đọc iOS Safari không bị chặn tiếng */
+    function speakJapaneseText(e, text) { 
+        if(e) e.stopPropagation(); 
+        const u = new SpeechSynthesisUtterance(text); 
+        u.lang = 'ja-JP'; 
+        u.rate = 0.85; 
+        window.speechSynthesis.speak(u); 
+    }
     function speakCurrentWord(e) { const w = currentList[activeWordIndex]; speakJapaneseText(e, w.kana || w.kanji); }
     function speakCurrentExample(e) { speakJapaneseText(e, currentList[activeWordIndex].exampleJp); }
     function revealBlur(e, el) { e.stopPropagation(); el.classList.toggle('revealed'); }
