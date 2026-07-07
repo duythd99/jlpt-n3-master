@@ -148,16 +148,63 @@
         footer { display: flex; justify-content: center; gap: 15px; font-size: 13px; margin-top: 5px; }
         footer a { color: #ff85a2; text-decoration: none; font-weight: bold; }
 
-        /* ĐÃ SỬA: Căn chỉnh cấu trúc bảng, thu hẹp cột dòng, cột sao, cột lật */
         .vocab-table-wrapper { max-height: 330px; overflow-y: auto; overflow-x: auto; border: 1px solid var(--border-color); border-radius: 8px; -webkit-overflow-scrolling: touch; }
         .vocab-table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; white-space: nowrap; }
         .vocab-table th, .vocab-table td { padding: 10px 8px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
         .vocab-table th { background: var(--primary); color: white; position: sticky; top: 0; z-index: 5; }
         
-        /* Định kích thước cực hẹp cho các cột bổ trợ để dồn diện tích cho chữ */
         .vocab-table th:nth-child(1), .vocab-table td:nth-child(1) { width: 35px; min-width: 35px; max-width: 35px; text-align: center; padding-left: 2px; padding-right: 2px; }
         .vocab-table th:nth-child(2), .vocab-table td:nth-child(2) { width: 28px; min-width: 28px; max-width: 28px; text-align: center; padding-left: 2px; padding-right: 2px; }
         .vocab-table th:nth-child(3), .vocab-table td:nth-child(3) { width: 32px; min-width: 32px; max-width: 32px; text-align: center; padding-left: 2px; padding-right: 2px; color: #64b5f6; font-weight: bold; }
+
+        /* CSS MỚI: Định dạng cấu trúc cho Popup Phóng To Kanji */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.75);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+        .modal-content {
+            background-color: var(--card-bg);
+            border: 2px solid var(--primary);
+            border-radius: 16px;
+            padding: 35px 25px 25px 25px;
+            text-align: center;
+            position: relative;
+            min-width: 220px;
+            box-shadow: 0 4px 25px rgba(0,0,0,0.5);
+            animation: popZoomIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popZoomIn {
+            from { transform: scale(0.85); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .modal-close {
+            position: absolute;
+            top: 6px; right: 12px;
+            font-size: 26px;
+            cursor: pointer;
+            color: var(--text-muted);
+            user-select: none;
+        }
+        .modal-kanji {
+            font-size: 72px;
+            font-weight: bold;
+            color: var(--text-color);
+            letter-spacing: 2px;
+            font-family: "Hiragino Mincho ProN", "Yu Mincho", "MS Mincho", serif;
+            line-height: 1.1;
+        }
+        .modal-subtext {
+            margin-top: 10px;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
 
         /* CÁC TAB KHÁC */
         .quiz-question { font-size: 42px; font-weight: bold; text-align: center; margin-bottom: 20px; color: var(--primary); }
@@ -288,7 +335,7 @@
         <button class="nav-btn" style="width:100%;" id="fall-start-btn" onclick="startFallingGame()">▶ Bắt đầu chơi</button>
     </div>
 
-    <!-- TAB DANH SÁCH (ĐÃ THÊM CỘT 👁️ VÀ THU HẸP DÒNG) -->
+    <!-- TAB DANH SÁCH -->
     <div id="tab-manager" class="tab-content" style="display: none;">
         <h3 id="manager-title" style="margin:5px 0; font-size:15px; color:var(--primary);">Danh sách</h3>
         <div class="vocab-table-wrapper">
@@ -307,6 +354,15 @@
                 <tbody id="vocab-list-tbody"></tbody>
             </table>
         </div>
+    </div>
+</div>
+
+<!-- KHUNG POPUP PHÓNG TO KANJI (MODAL) -->
+<div id="kanji-popup" class="modal-overlay" onclick="closeKanjiPopup()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <span class="modal-close" onclick="closeKanjiPopup()">&times;</span>
+        <div id="modal-kanji-text" class="modal-kanji"></div>
+        <div class="modal-subtext">Chạm bên ngoài để đóng</div>
     </div>
 </div>
 
@@ -330,7 +386,7 @@
     const KANJI_DICTIONARY = {
         "一":"NHẤT","二":"NHỊ","三":"TAM","四":"TỨ","五":"NGŨ","六":"LỤC","七":"THẤT","八":"BÁT","九":"CỬU","十":"THẬP",
         "百":"BÁCH","千":"THIÊN","万":"VẠN","円":"VIÊN","日":"NHẬT","月":"NGUYỆT","火":"HỎA","水":"THỦY","木":"MỘC","金":"KIM",
-        "土":"THỔ","本":"BẢN","大":"ĐẠI","小":"TIỂU","中":"TRUNG","国":"QUỐC","人":"NHÂN","年":"NIÊN","生":"SINH","学":"HỌC",
+        "土":"THỔ","本":"BẢN","大":"ĐẠI","小":"TIỂU","중":"TRUNG","国":"QUỐC","人":"NHÂN","年":"NIÊN","生":"SINH","学":"HỌC",
         "校":"HIỆU","先":"TIÊN","会":"HỘI","社":"XÃ","員":"VIÊN","医":"Y","者":"GIẢ","駅":"DỊCH","電":"ĐIỆN","車":"XA",
         "自":"TỰ","転":"CHUYỂN","動":"ĐỘNG","飛":"PHI","行":"HÀNH","機":"CƠ","右":"HỮU","左":"TẢ","前":"TIỀN","後":"HẬU",
         "北":"BẮC","南":"NAM","東":"ĐÔNG","西":"TÂY","外":"NGOẠI","内":"NỘI","上":"THƯỢNG","下":"HẠ","毎":"MỖI","時":"THỜI",
@@ -349,7 +405,7 @@
         "地":"ĐỊA","球":"CẦU","遅":"TRÌ","応":"ỨNG","募":"MỘ","疑":"NGHI","問":"VẤN","政":"CHÍNH","治":"TRỊ","経":"KINH",
         "済":"TẾ","法":"PHÁP","律":"LUẬT","確":"XÁC","認":"NHẬN","保":"BẢO","証":"CHỨNG","告":"CÁO","知":"TRI","報":"BÁO",
         "道":"ĐẠO","信":"TÍN","頼":"LẠI","席":"TỊCH","留":"LƯU","守":"THỦ","適":"THÍCH","当":"ĐƯƠNG","選":"TUYỂN","挙":"CỬ",
-        "投":"ĐẦU","票":"PHIẾU","配":"PHỐI","給":"CẤP","欲":"DỤC","痛":"THỐNG","危":"NGUY","險":"HIỂM","願":"NGUYỆN","申":"THÂN",
+        "投":"ĐẦU","票":"PHIẾU","配":"PHỐI","給":"CẤP","欲":"DỤC","痛":"THỐNG","危":"NGUY","險":"HIểm","願":"NGUYỆN","申":"THÂN",
         "込":"VÀO","払":"PHẤT","存":"TỒN","在":"TẠI","役":"DỊCH","割":"CÁT","基":"CƠ","准":"CHUẨN","備":"BỊ","営":"DOANH",
         "業":"NGHIỆP","幹":"CÁN","資":"TƯ","産":"SẢN","権":"QUYỀN","利":"LỢI","昨":"TẠC","漸":"TIỆM","急":"CẤP","詐":"TRÁ",
         "穏":"ỔN","作":"TÁC","浸":"TẨM","録":"LỤC","寝":"TẨM","尋":"TẦM","血":"HUYẾT","液":"DỊCH","正常":"CHÁNH THƯỜNG",
@@ -603,7 +659,7 @@
     function checkFall(e) { if(e.key === 'Enter' && isFalling) { const i = document.getElementById('fall-input'); const v = i.value.trim().toLowerCase(); if(v === fallCurrent.kana.toLowerCase() || v === fallCurrent.meaning.toLowerCase()) { clearInterval(fallInterval); fallScore+=10; updateFallBoard(); i.value = ''; spawnFalling(); } else { i.value = ''; } } }
     function updateFallBoard() { document.getElementById('fall-score').innerText = fallScore; document.getElementById('fall-lives').innerText = fallLives; document.getElementById('fall-timer').innerText = timeLeft; }
 
-    /* ĐÃ SỬA: Đưa số lần lật (w.flipCount) vào trong danh sách render */
+    /* ĐÃ SỬA: Thêm sự kiện click showKanjiPopup vào ô Từ vựng */
     function renderManagerList() {
         document.getElementById('manager-title').innerText = `Bài học: ${currentSheetName}`;
         const tbody = document.getElementById('vocab-list-tbody'); tbody.innerHTML = '';
@@ -613,13 +669,23 @@
                 <td>${index + 2}</td>
                 <td>${w.starred ? '⭐' : '☆'}</td>
                 <td>${w.flipCount || 0}</td>
-                <td><b>${w.kanji}</b></td>
+                <td onclick="showKanjiPopup('${w.kanji}')" style="cursor: pointer; text-decoration: underline dotted var(--primary); font-weight: bold;">${w.kanji}</td>
                 <td style="color:#ff85a2; font-weight:bold; text-transform: uppercase;">${w.hanviet || autoTranslateHanViet(w.kanji)}</td>
                 <td>${w.kana}</td>
                 <td>${w.meaning}</td>
             `;
             tbody.appendChild(tr);
         });
+    }
+
+    /* JAVASCRIPT MỚI: Điều khiển đóng/mở Popup phóng to */
+    function showKanjiPopup(kanji) {
+        document.getElementById('modal-kanji-text').innerText = kanji;
+        document.getElementById('kanji-popup').style.display = 'flex';
+    }
+
+    function closeKanjiPopup() {
+        document.getElementById('kanji-popup').style.display = 'none';
     }
 </script>
 </body>
