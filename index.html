@@ -156,9 +156,16 @@
         .vocab-table th, .vocab-table td { padding: 8px; border-bottom: 1px solid var(--border-color); }
         .vocab-table th { background: var(--primary); color: white; position: sticky; top: 0; }
 
+        /* ĐÃ SỬA: Căn chỉnh lại khoảng cách an toàn cho iPhone màn hình tai thỏ / Dynamic Island */
         @media only screen and (max-width: 430px) {
-            body { height: 100dvh!important; overflow: hidden!important; justify-content: space-between; padding: 10px 15px calc(10px + env(safe-area-inset-bottom)) 15px!important; }
-            .flashcard { height: 310px !important; }
+            body { 
+                height: 100dvh!important; 
+                overflow: hidden!important; 
+                justify-content: space-between; 
+                /* Tự động cộng thêm khoảng thụt lề an toàn của cạnh trên và cạnh dưới iOS */
+                padding: calc(15px + env(safe-area-inset-top)) 15px calc(10px + env(safe-area-inset-bottom)) 15px!important; 
+            }
+            .flashcard { height: 300px !important; }
             .word-main { font-size: 34px !important; }
         }
     </style>
@@ -293,7 +300,7 @@
         "気":"KHÍ","雨":"VŨ","雪":"TUYẾT","風":"PHONG","空":"KHÔNG","山":"SƠN","川":"XUYÊN","海":"HẢI","花":"HOA","森":"LÂM",
         "林":"LÂM","親":"THÂN","切":"THIẾT","便":"TIỆN","利":"LỢI","不":"BẤT","元":"NGUYÊN","多":"ĐA","少":"THIỂU",
         "愛":"ÁI","感":"CẢM","情":"TÌNH","恋":"LUYẾN","変":"BIẾN","化":"HÓA","代":"ĐẠI","最":"TỐI","初":"SƠ","終":"CHUNG",
-        "発":"PHÁT","見":"KIẾN","表":"BIỂU","現":"HIỆN","調":"ĐIỀU","査":"TRA","相":"TƯƠNG","談":"ĐÀM","決":"QUYẾT","定":"ĐỊNH",
+        "発":"PHÁT","見":"KIẾN","表":"BIỂU","現":"HIỆN","調":"ĐIỀU","査":"TRA","相":"TƯƠNG","談":"ĐÀM","決":"QUYẾT","ĐỊNH":"ĐỊNH",
         "得":"ĐẮC","意":"Ý","包":"BAO","首":"THỦ","都":"ĐÔ","府":"PHỦ","県":"HUYỆN","市":"THỊ","町":"ĐINH","村":"THÔN",
         "戻":"LỆ","帰":"QUY","入":"NHẬP","出":"XUẤT","走":"TẨU","歩":"BỘ","旅":"LỮ","館":"QUÁN","屋":"ỐC","店":"TIỆM",
         "件":"KIỆN","通":"THÔNG","勤":"CẦN","岩":"NHAM","努":"NỖ","力":"LỰC","労":"LAO","協":"HIỆP","団":"ĐOÀN","体":"THỂ",
@@ -310,7 +317,7 @@
     let db = JSON.parse(localStorage.getItem('jlpt_kanji_db')) || {
         "N3_Mondai_Demo": [
             { kanji: "得意", kana: "とくい", meaning: "Giỏi, sở trường, đắc ý", exampleJp: "彼女は料理が得意です。", exampleVi: "Cô ấy nấu ăn giỏi.", synonym: "上手", flipCount: 0, starred: false },
-            { kanji: "包む", kana: "つつむ", meaning: "Gói, bọc", exampleJp: "プレゼント teoきれいな紙で包む。", exampleVi: "Gói quà bằng giấy đẹp.", synonym: "", flipCount: 0, starred: false }
+            { kanji: "包む", kana: "つつむ", meaning: "Gói, bọc", exampleJp: "プレゼントをきれいな紙で包む。", exampleVi: "Gói quà bằng giấy đẹp.", synonym: "", flipCount: 0, starred: false }
         ]
     };
     let currentList = [], activeWordIndex = 0, currentSheetName = "";
