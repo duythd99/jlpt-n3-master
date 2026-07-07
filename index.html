@@ -13,7 +13,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
-        /* ĐỊNH NGHĨA BIẾN MÀU SẮC CHO 2 CHẾ ĐỘ */
+        /* ĐỊNH NGHĨA BIẾN MÀU SẮC */
         :root[data-theme="dark"] {
             --bg-color: #121212;
             --card-bg: #1e1e1e;
@@ -52,7 +52,7 @@
             transition: background-color 0.3s, color 0.3s;
         }
 
-        /* ĐÃ SỬA: Căn giữa tiêu đề chính và phụ */
+        /* ĐÃ SỬA: Tiêu đề căn giữa tuyệt đối */
         .header-row {
             position: relative;
             display: flex;
@@ -64,10 +64,9 @@
             max-width: 400px;
             margin-bottom: 15px;
         }
-        h1.title { font-size: 24px; margin: 0; color: var(--primary); font-weight: bold; }
-        .subtitle { font-size: 18px; margin: 4px 0 0 0; color: var(--primary); font-weight: bold; }
+        h1.title { font-size: 26px; margin: 0; color: var(--primary); font-weight: bold; }
+        .subtitle { font-size: 18px; margin: 6px 0 0 0; color: var(--primary); font-weight: bold; }
         
-        /* ĐA SỬA: Nút theme đẩy sang góc tuyệt đối để không lệch chữ tiêu đề */
         .theme-toggle-btn {
             position: absolute;
             right: 0;
@@ -82,7 +81,7 @@
             -webkit-user-select: none;
         }
 
-        .container { width: 100%; max-width: 400px; display: flex; flex-direction: column; }
+        .container { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 10px; }
 
         .upload-box {
             border: 2px dashed #ffb7d2;
@@ -90,7 +89,6 @@
             padding: 15px;
             text-align: center;
             background-color: rgba(233, 30, 99, 0.05);
-            margin-bottom: 12px;
         }
         .upload-box p { margin: 0 0 10px 0; font-size: 13px; color: var(--text-muted); }
         .file-input-label {
@@ -105,27 +103,38 @@
         }
         #excel-file { display: none; }
 
-        .controls-row { display: flex; align-items: center; justify-content: center; margin-bottom: 8px; gap: 10px; }
-        select { flex: 1; max-width: 280px; background-color: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color); padding: 6px 10px; border-radius: 8px; font-size: 14px; }
+        .controls-row { display: flex; align-items: center; justify-content: center; gap: 10px; }
+        select { flex: 1; max-width: 280px; background-color: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color); padding: 8px 10px; border-radius: 8px; font-size: 14px; }
         
-        /* ĐÃ SỬA: Căn giữa bộ lọc sao */
-        .bookmark-filter { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; color: var(--text-muted); margin-bottom: 12px; cursor: pointer; }
+        .bookmark-filter { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 14px; color: var(--text-muted); margin: 4px 0; cursor: pointer; }
 
-        .mode-buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 8px; }
-        .mode-btn { background-color: var(--card-bg); color: var(--text-muted); border: 1px solid var(--border-color); padding: 8px 2px; border-radius: 8px; font-size: 12px; cursor: pointer; }
+        .mode-buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .mode-btn { background-color: var(--card-bg); color: var(--text-muted); border: 1px solid var(--border-color); padding: 10px 2px; border-radius: 8px; font-size: 12px; cursor: pointer; font-weight: 500; }
         .mode-btn.active { background-color: var(--primary); color: white; border-color: var(--primary); }
         
-        .view-list-btn { width: 100%; background-color: transparent; color: var(--primary); border: 1px solid var(--primary); padding: 8px; border-radius: 8px; font-size: 13px; cursor: pointer; margin-bottom: 12px; }
+        .view-list-btn { width: 100%; background-color: transparent; color: var(--primary); border: 1px solid var(--primary); padding: 10px; border-radius: 8px; font-size: 13px; cursor: pointer; font-weight: bold; }
 
-        .flashcard { width: 100%; height: 340px; perspective: 1000px; margin: 10px 0; cursor: pointer; }
+        /* ĐÃ SỬA: Tăng kích thước thẻ và tối ưu hoá không gian để bớt trống trải */
+        .flashcard { width: 100%; height: 380px; perspective: 1000px; margin: 5px 0; cursor: pointer; }
         .flashcard-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.4s; transform-style: preserve-3d; -webkit-transform-style: preserve-3d; }
         .flashcard.flipped .flashcard-inner { transform: rotateY(180deg); -webkit-transform: rotateY(180deg); }
         
-        .flashcard-front, .flashcard-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 16px; padding: 20px; box-sizing: border-box; background-color: var(--card-bg); border: 2px solid var(--border-color); }
+        .flashcard-front, .flashcard-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 18px; padding: 25px 20px; box-sizing: border-box; background-color: var(--card-bg); border: 2px solid var(--border-color); }
+        
         .flashcard-front { background-color: var(--primary); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; transform: rotateY(0deg); -webkit-transform: rotateY(0deg); }
         
-        /* ĐÃ SỬA: Toàn bộ mặt sau thẻ chuyển sang căn giữa đồng đều (center) */
-        .flashcard-back { color: var(--text-color); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transform: rotateY(180deg); -webkit-transform: rotateY(180deg); overflow-y: auto; }
+        /* ĐÃ SỬA: Dàn đều (space-around) các phần tử theo chiều dọc giúp lấp đầy khoảng trống */
+        .flashcard-back { 
+            color: var(--text-color); 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: space-around; 
+            text-align: center; 
+            transform: rotateY(180deg); 
+            -webkit-transform: rotateY(180deg); 
+            overflow-y: auto; 
+        }
         
         .flashcard.flipped .flashcard-front { visibility: hidden; }
         .flashcard:not(.flipped) .flashcard-back { visibility: hidden; }
@@ -134,25 +143,27 @@
         .star-icon { left: 15px; }
         .eye-icon { right: 15px; font-size: 13px; }
 
-        .word-main { font-size: 40px; font-weight: bold; margin: auto 0; }
-        .audio-btn { background: #fff0f3; border: 1px solid #ffb3c6; color: var(--primary); border-radius: 50%; width: 28px; height: 28px; font-size: 12px; cursor: pointer; margin-left: 6px; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; }
+        .word-main { font-size: 44px; font-weight: bold; margin: 0; }
+        .audio-btn { background: #fff0f3; border: 1px solid #ffb3c6; color: var(--primary); border-radius: 50%; width: 32px; height: 32px; font-size: 14px; cursor: pointer; margin-left: 8px; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; }
 
-        /* CĂN CHỈNH KHOẢNG CÁCH CHỮ TRONG THẺ */
-        .fb-hanviet { font-size: 22px; color: #ff85a2; font-weight: bold; margin-top: 10px; text-transform: uppercase; letter-spacing: 1px; }
-        .fb-kana { font-size: 17px; color: var(--text-muted); font-weight: bold; margin: 6px 0; display: flex; align-items: center; justify-content: center; }
-        .fb-mean { font-size: 18px; font-weight: bold; margin-bottom: 12px; }
+        /* ĐÃ SỬA: Căn chỉnh lại khoảng cách và kích cỡ chữ trong thẻ */
+        .fb-container-top { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; }
+        .fb-hanviet { font-size: 26px; color: #ff85a2; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin: 0; }
+        .fb-kana { font-size: 19px; color: var(--text-muted); font-weight: bold; margin: 0; display: flex; align-items: center; justify-content: center; }
+        .fb-mean { font-size: 20px; font-weight: bold; margin: 5px 0; color: var(--text-color); }
 
         .blur-box { filter: blur(6px); background: var(--blur-bg); border-radius: 4px; padding: 2px 8px; cursor: pointer; color: transparent; display: inline-block; }
         .blur-box.revealed { filter: none; background: transparent; color: inherit; }
 
-        .nav-buttons { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; width: 100%; }
-        .nav-btn { background-color: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px; }
-        .nav-btn.btn-secondary { background-color: #5c6bc0; }
-        .counter { font-size: 13px; color: var(--primary); font-weight: bold; text-align: center; margin: 4px 0; }
+        .nav-buttons { display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 10px; }
+        .nav-btn { flex: 1; background-color: var(--primary); color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 15px; }
+        .nav-btn.btn-secondary { background-color: #5c6bc0; max-width: 90px; }
+        .counter { font-size: 14px; color: var(--primary); font-weight: bold; text-align: center; margin: 2px 0; }
 
-        footer { display: flex; justify-content: center; gap: 15px; margin-top: 10px; font-size: 12px; }
+        footer { display: flex; justify-content: center; gap: 15px; font-size: 13px; margin-top: 5px; }
         footer a { color: #ff85a2; text-decoration: none; font-weight: bold; }
 
+        /* CÁC TAB KHÁC */
         .quiz-question { font-size: 42px; font-weight: bold; text-align: center; margin-bottom: 20px; color: var(--primary); }
         .quiz-options { display: flex; flex-direction: column; gap: 10px; width: 100%; }
         .quiz-option { padding: 12px; background: var(--card-bg); border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; font-size: 16px; text-align: center; }
@@ -164,7 +175,7 @@
         .game-input { width: 100%; padding: 10px; font-size: 16px; background-color: var(--card-bg); border: 2px solid var(--primary); border-radius: 6px; outline: none; color: var(--text-color); box-sizing: border-box; margin-bottom: 10px; }
         .score-board { display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; margin-bottom: 10px; color: var(--primary); }
 
-        .vocab-table-wrapper { max-height: 280px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; margin-top: 10px; }
+        .vocab-table-wrapper { max-height: 300px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; }
         .vocab-table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; white-space: nowrap; }
         .vocab-table th, .vocab-table td { padding: 8px; border-bottom: 1px solid var(--border-color); }
         .vocab-table th { background: var(--primary); color: white; position: sticky; top: 0; }
@@ -173,17 +184,17 @@
             body { 
                 height: 100dvh!important; 
                 overflow: hidden!important; 
-                justify-content: space-between; 
-                padding: calc(15px + env(safe-area-inset-top)) 15px calc(10px + env(safe-area-inset-bottom)) 15px!important; 
+                justify-content: flex-start; 
+                padding: calc(10px + env(safe-area-inset-top)) 15px calc(10px + env(safe-area-inset-bottom)) 15px!important; 
             }
-            .flashcard { height: 310px !important; }
-            .word-main { font-size: 36px !important; }
+            .container { gap: 12px; }
+            .flashcard { height: 350px !important; }
         }
     </style>
 </head>
 <body>
 
-<!-- Tiêu đề mới cân đối, căn giữa -->
+<!-- Tiêu đề mới đã căn giữa hoàn hảo -->
 <div class="header-row">
     <h1 class="title">JLPT N3 🌸</h1>
     <div class="subtitle">🌸bé Tràm 🌸</div>
@@ -223,22 +234,29 @@
                     <span class="card-icon-top eye-icon" style="color: white;">👁️ 0</span>
                     <div class="word-main" id="fc-front-text">-</div>
                 </div>
-                <!-- Nội dung mặt sau đã được chuyển sang cấu trúc căn giữa đồng bộ -->
+                
+                <!-- Mặt sau thẻ đã được cấu trúc lại hoàn toàn để cân đối, căn giữa, giãn đều -->
                 <div class="flashcard-back">
                     <span class="card-icon-top star-icon" onclick="toggleStar(event)">☆</span>
                     <span class="card-icon-top eye-icon">👁️ 0</span>
-                    <div class="fb-hanviet" id="fc-hanviet"></div>
-                    <div class="fb-kana">
-                        <span id="fc-kana"></span>
-                        <button class="audio-btn" onclick="speakCurrentWord(event)">🔊</button>
+                    
+                    <div class="fb-container-top">
+                        <div class="fb-hanviet" id="fc-hanviet">-</div>
+                        <div class="fb-kana">
+                            <span id="fc-kana"></span>
+                            <button class="audio-btn" onclick="speakCurrentWord(event)">🔊</button>
+                        </div>
                     </div>
-                    <div class="fb-mean" id="fc-meaning"></div>
-                    <div style="font-size: 13px; color: var(--primary); margin-bottom: 10px; display:none;" id="fc-same-box">
+                    
+                    <div class="fb-mean" id="fc-meaning">-</div>
+                    
+                    <div style="font-size: 14px; color: var(--primary); margin: 5px 0; display:none;" id="fc-same-box">
                         Từ đồng nghĩa: <span class="blur-box" id="fc-same" onclick="revealBlur(event, this)"></span>
                     </div>
-                    <div style="font-size:13px; border-top:1px dashed var(--border-color); padding-top:8px; width:100%;" id="fc-ex-box">
-                        <div style="font-weight:bold; margin-bottom: 2px;">Ví dụ: <button class="audio-btn" onclick="speakCurrentExample(event)">🔊</button></div>
-                        <span id="fc-ex-jp" style="display:block; margin:2px 0; font-style:italic;"></span>
+                    
+                    <div style="font-size:14px; border-top:1px dashed var(--border-color); padding-top:12px; width:100%; display: flex; flex-direction: column; align-items: center; gap: 4px;" id="fc-ex-box">
+                        <div style="font-weight:bold;">Ví dụ: <button class="audio-btn" onclick="speakCurrentExample(event)">🔊</button></div>
+                        <span id="fc-ex-jp" style="font-style:italic; font-size:15px; color: var(--text-color);"></span>
                         <span style="color:var(--text-muted);">Dịch: <span class="blur-box" id="fc-ex-vi" onclick="revealBlur(event, this)"></span></span>
                     </div>
                 </div>
@@ -257,7 +275,7 @@
         </footer>
     </div>
 
-    <!-- TAB TRẮC NGHIỆM -->
+    <!-- CÁC TAB KHÁC -->
     <div id="tab-quiz" class="tab-content" style="display: none;">
         <div class="score-board"><span>Câu hỏi: <span id="quiz-counter">0/0</span></span><span>Điểm: <span id="quiz-score">0</span></span></div>
         <div class="quiz-question" id="quiz-q"></div>
@@ -265,7 +283,6 @@
         <button class="nav-btn" style="margin-top:15px; width:100%; display:none;" id="quiz-next-btn" onclick="nextQuiz()">Câu tiếp theo</button>
     </div>
 
-    <!-- TAB GÕ TỪ -->
     <div id="tab-typing" class="tab-content" style="display: none;">
         <div class="score-board"><span>Điểm: <span id="type-score">0</span></span></div>
         <div class="quiz-question" id="type-q"></div>
@@ -273,7 +290,6 @@
         <p id="type-feedback" style="text-align:center; font-weight:bold; font-size:14px; height:20px;"></p>
     </div>
 
-    <!-- TAB KANJI RƠI -->
     <div id="tab-falling" class="tab-content" style="display: none;">
         <div class="score-board"><span>Điểm: <span id="fall-score">0</span></span><span style="color:#ff5252;">⏱️ <span id="fall-timer">30</span>s</span><span>❤️ <span id="fall-lives">3</span></span></div>
         <div class="game-area" id="fall-area"><div id="falling-word" class="falling-word" style="display: none;"></div></div>
@@ -281,7 +297,6 @@
         <button class="nav-btn" style="width:100%;" id="fall-start-btn" onclick="startFallingGame()">▶ Bắt đầu chơi</button>
     </div>
 
-    <!-- TAB DANH SÁCH -->
     <div id="tab-manager" class="tab-content" style="display: none;">
         <h3 id="manager-title" style="margin:5px 0; font-size:15px; color:var(--primary);">Danh sách</h3>
         <div class="vocab-table-wrapper">
@@ -294,20 +309,26 @@
 </div>
 
 <script>
-    /* KHỞI TẠO THEME TRƯỚC KHI TẢI TRANG ĐỂ TRÁNH BỊ CHỚP MÀN HÌNH */
+    /* THIẾT LẬP GIAO DIỆN CHUẨN TRƯỚC KHI LOAD */
     (function() {
         const savedTheme = localStorage.getItem('app_theme') || 'dark';
         document.documentElement.setAttribute('data-theme', savedTheme);
     })();
 
-    /* ĐÃ SỬA: Cơ chế kích hoạt âm thanh khi người dùng tương tác lần đầu để mở khóa tiếng trên iPhone (iOS) */
-    document.body.addEventListener('click', function() {
-        if (!window.speechUnlocked) {
-            const initialUtterance = new SpeechSynthesisUtterance('');
-            window.speechSynthesis.speak(initialUtterance);
-            window.speechUnlocked = true;
-        }
-    }, { once: true });
+    /* ĐÃ SỬA: Cơ chế unlock âm thanh toàn diện cho iOS iPhone */
+    function unlockAudio() {
+        window.speechSynthesis.cancel(); // Xóa sạch hàng đợi bị treo trước đó
+        const u = new SpeechSynthesisUtterance(' ');
+        u.lang = 'ja-JP';
+        u.volume = 0;
+        window.speechSynthesis.speak(u);
+        
+        // Hủy bỏ các event listener sau khi đã kích hoạt thành công
+        window.removeEventListener('click', unlockAudio);
+        window.removeEventListener('touchstart', unlockAudio);
+    }
+    window.addEventListener('click', unlockAudio);
+    window.addEventListener('touchstart', unlockAudio);
 
     const KANJI_DICTIONARY = {
         "一":"NHẤT","二":"NHỊ","三":"TAM","四":"TỨ","五":"NGŨ","六":"LỤC","七":"THẤT","八":"BÁT","九":"CỬU","十":"THẬP",
@@ -331,7 +352,7 @@
         "地":"ĐỊA","球":"CẦU","遅":"TRÌ","応":"ỨNG","募":"MỘ","疑":"NGHI","問":"VẤN","政":"CHÍNH","治":"TRỊ","経":"KINH",
         "済":"TẾ","法":"PHÁP","律":"LUẬT","確":"XÁC","認":"NHẬN","保":"BẢO","証":"CHỨNG","告":"CÁO","知":"TRI","報":"BÁO",
         "道":"ĐẠO","信":"TÍN","頼":"LẠI","席":"TỊCH","留":"LƯU","守":"THỦ","適":"THÍCH","当":"ĐƯƠNG","選":"TUYỂN","挙":"CỬ",
-        "投":"ĐẦU","票":"PHIẾU","配":"PHỐI","給":"CẤP","欲":"DỤC","痛":"THỐNG","危":"NGUY","険":"HIỂM","願":"NGUYỆN","申":"THÂN",
+        "投":"ĐẦU","票":"PHIẾU","配":"PHỐI","給":"CẤP","欲":"DỤC","痛":"THỐNG","危":"NGUY","險":"HIỂM","願":"NGUYỆN","申":"THÂN",
         "込":"VÀO","払":"PHẤT","存":"TỒN","在":"TẠI","役":"DỊCH","割":"CÁT","基":"CƠ","准":"CHUẨN","備":"BỊ","営":"DOANH",
         "業":"NGHIỆP","幹":"CÁN","資":"TƯ","産":"SẢN","権":"QUYỀN","利":"LỢI","昨":"TẠC","漸":"TIỆM","急":"CẤP","詐":"TRÁ",
         "穏":"ỔN","作":"TÁC","浸":"TẨM","録":"LỤC","寝":"TẨM","尋":"TẦM","血":"HUYẾT","液":"DỊCH","正常":"CHÁNH THƯỜNG",
@@ -341,7 +362,7 @@
     let db = JSON.parse(localStorage.getItem('jlpt_kanji_db')) || {
         "N3_Mondai_Demo": [
             { kanji: "得意", kana: "とくい", meaning: "Giỏi, sở trường, đắc ý", exampleJp: "彼女は料理が得意です。", exampleVi: "Cô ấy nấu ăn giỏi.", synonym: "上手", flipCount: 0, starred: false },
-            { kanji: "包む", kana: "つつむ", meaning: "Gói, bọc", exampleJp: "プレゼントကိုきれいな紙で包む。", exampleVi: "Gói quà bằng giấy đẹp.", synonym: "", flipCount: 0, starred: false }
+            { kanji: "包む", kana: "つつむ", meaning: "Gói, bọc", exampleJp: "プレゼントをきれいな紙で包む。", exampleVi: "Gói quà bằng giấy đẹp.", synonym: "", flipCount: 0, starred: false }
         ]
     };
     let currentList = [], activeWordIndex = 0, currentSheetName = "";
@@ -447,7 +468,7 @@
                 });
 
                 if (Object.keys(newDb).filter(k => k !== '_amHanViet').length > 0) {
-                    db = newDb; saveToLocalStorage(); alert("🎉 Đồng bộ dữ liệu Excel và sheet AmHanViet thành công!"); initSheetSelect();
+                    db = newDb; saveToLocalStorage(); alert("🎉 Đồng bộ dữ liệu Excel thành công!"); initSheetSelect();
                 } else { alert("Lỗi: Không tìm thấy dữ liệu bài học phù hợp!"); }
             } catch (err) { alert("Đã xảy ra lỗi khi đọc file: " + err.message); }
         };
@@ -480,8 +501,7 @@
         document.getElementById('fc-front-text').innerText = word.kanji;
         
         const views = `👁️ ${word.flipCount || 0}`;
-        document.querySelectorAll('.eye-icon').forEach(el => { if(!el.removeAttribute('style')) el.innerText = views; });
-        document.querySelector('.flashcard-front .eye-icon').innerText = views;
+        document.querySelectorAll('.eye-icon').forEach(el => { el.innerText = views; });
         updateStarUI();
 
         document.getElementById('fc-hanviet').innerText = word.hanviet || autoTranslateHanViet(word.kanji);
@@ -495,7 +515,7 @@
         if (word.exampleJp) {
             document.getElementById('fc-ex-jp').innerText = word.exampleJp;
             document.getElementById('fc-ex-vi').innerText = word.exampleVi || '';
-            exBox.style.display = 'block';
+            exBox.style.display = 'flex';
         } else { exBox.style.display = 'none'; }
 
         document.getElementById('card-counter').innerText = `${activeWordIndex + 1} / ${currentList.length}`;
@@ -533,12 +553,25 @@
         activeWordIndex = 0; updateFlashcard();
     }
 
-    /* ĐÃ SỬA: Tối ưu lại trình đọc iOS Safari không bị chặn tiếng */
+    /* ĐÃ SỬA: Sửa dứt điểm lỗi đọc âm thanh trên iPhone iOS Safari */
     function speakJapaneseText(e, text) { 
         if(e) e.stopPropagation(); 
+        if(!text) return;
+        
+        // Buộc phải hủy hàng đợi trước đó trên iOS để tránh bị khóa luồng phát âm thanh
+        window.speechSynthesis.cancel(); 
+        
         const u = new SpeechSynthesisUtterance(text); 
         u.lang = 'ja-JP'; 
-        u.rate = 0.85; 
+        u.rate = 0.88; 
+        u.volume = 1.0;
+        
+        // Thử tìm giọng đọc tiếng Nhật chuẩn nếu hệ thống đã tải xong danh sách giọng
+        if (window.speechSynthesis.getVoices().length > 0) {
+            const jaVoice = window.speechSynthesis.getVoices().find(v => v.lang.startsWith('ja'));
+            if (jaVoice) u.voice = jaVoice;
+        }
+        
         window.speechSynthesis.speak(u); 
     }
     function speakCurrentWord(e) { const w = currentList[activeWordIndex]; speakJapaneseText(e, w.kana || w.kanji); }
@@ -582,7 +615,7 @@
     function checkFall(e) { if(e.key === 'Enter' && isFalling) { const i = document.getElementById('fall-input'); const v = i.value.trim().toLowerCase(); if(v === fallCurrent.kana.toLowerCase() || v === fallCurrent.meaning.toLowerCase()) { clearInterval(fallInterval); fallScore+=10; updateFallBoard(); i.value = ''; spawnFalling(); } else { i.value = ''; } } }
     function updateFallBoard() { document.getElementById('fall-score').innerText = fallScore; document.getElementById('fall-lives').innerText = fallLives; document.getElementById('fall-timer').innerText = timeLeft; }
 
-    /* XEM DANH SÁCH */
+    /* DANH SÁCH MỞ RỘNG */
     function renderManagerList() {
         document.getElementById('manager-title').innerText = `Bài học: ${currentSheetName}`;
         const tbody = document.getElementById('vocab-list-tbody'); tbody.innerHTML = '';
