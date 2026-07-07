@@ -52,7 +52,6 @@
             transition: background-color 0.3s, color 0.3s;
         }
 
-        /* ĐÃ SỬA: Tiêu đề căn giữa tuyệt đối */
         .header-row {
             position: relative;
             display: flex;
@@ -114,27 +113,14 @@
         
         .view-list-btn { width: 100%; background-color: transparent; color: var(--primary); border: 1px solid var(--primary); padding: 10px; border-radius: 8px; font-size: 13px; cursor: pointer; font-weight: bold; }
 
-        /* ĐÃ SỬA: Tăng kích thước thẻ và tối ưu hoá không gian để bớt trống trải */
         .flashcard { width: 100%; height: 380px; perspective: 1000px; margin: 5px 0; cursor: pointer; }
         .flashcard-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.4s; transform-style: preserve-3d; -webkit-transform-style: preserve-3d; }
         .flashcard.flipped .flashcard-inner { transform: rotateY(180deg); -webkit-transform: rotateY(180deg); }
         
         .flashcard-front, .flashcard-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 18px; padding: 25px 20px; box-sizing: border-box; background-color: var(--card-bg); border: 2px solid var(--border-color); }
-        
         .flashcard-front { background-color: var(--primary); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; transform: rotateY(0deg); -webkit-transform: rotateY(0deg); }
         
-        /* ĐÃ SỬA: Dàn đều (space-around) các phần tử theo chiều dọc giúp lấp đầy khoảng trống */
-        .flashcard-back { 
-            color: var(--text-color); 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: space-around; 
-            text-align: center; 
-            transform: rotateY(180deg); 
-            -webkit-transform: rotateY(180deg); 
-            overflow-y: auto; 
-        }
+        .flashcard-back { color: var(--text-color); display: flex; flex-direction: column; align-items: center; justify-content: space-around; text-align: center; transform: rotateY(180deg); -webkit-transform: rotateY(180deg); overflow-y: auto; }
         
         .flashcard.flipped .flashcard-front { visibility: hidden; }
         .flashcard:not(.flipped) .flashcard-back { visibility: hidden; }
@@ -146,7 +132,6 @@
         .word-main { font-size: 44px; font-weight: bold; margin: 0; }
         .audio-btn { background: #fff0f3; border: 1px solid #ffb3c6; color: var(--primary); border-radius: 50%; width: 32px; height: 32px; font-size: 14px; cursor: pointer; margin-left: 8px; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; }
 
-        /* ĐÃ SỬA: Căn chỉnh lại khoảng cách và kích cỡ chữ trong thẻ */
         .fb-container-top { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; }
         .fb-hanviet { font-size: 26px; color: #ff85a2; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin: 0; }
         .fb-kana { font-size: 19px; color: var(--text-muted); font-weight: bold; margin: 0; display: flex; align-items: center; justify-content: center; }
@@ -163,6 +148,17 @@
         footer { display: flex; justify-content: center; gap: 15px; font-size: 13px; margin-top: 5px; }
         footer a { color: #ff85a2; text-decoration: none; font-weight: bold; }
 
+        /* ĐÃ SỬA: Căn chỉnh cấu trúc bảng, thu hẹp cột dòng, cột sao, cột lật */
+        .vocab-table-wrapper { max-height: 330px; overflow-y: auto; overflow-x: auto; border: 1px solid var(--border-color); border-radius: 8px; -webkit-overflow-scrolling: touch; }
+        .vocab-table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; white-space: nowrap; }
+        .vocab-table th, .vocab-table td { padding: 10px 8px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+        .vocab-table th { background: var(--primary); color: white; position: sticky; top: 0; z-index: 5; }
+        
+        /* Định kích thước cực hẹp cho các cột bổ trợ để dồn diện tích cho chữ */
+        .vocab-table th:nth-child(1), .vocab-table td:nth-child(1) { width: 35px; min-width: 35px; max-width: 35px; text-align: center; padding-left: 2px; padding-right: 2px; }
+        .vocab-table th:nth-child(2), .vocab-table td:nth-child(2) { width: 28px; min-width: 28px; max-width: 28px; text-align: center; padding-left: 2px; padding-right: 2px; }
+        .vocab-table th:nth-child(3), .vocab-table td:nth-child(3) { width: 32px; min-width: 32px; max-width: 32px; text-align: center; padding-left: 2px; padding-right: 2px; color: #64b5f6; font-weight: bold; }
+
         /* CÁC TAB KHÁC */
         .quiz-question { font-size: 42px; font-weight: bold; text-align: center; margin-bottom: 20px; color: var(--primary); }
         .quiz-options { display: flex; flex-direction: column; gap: 10px; width: 100%; }
@@ -174,11 +170,6 @@
         .falling-word { position: absolute; font-size: 32px; font-weight: bold; color: var(--primary); left: 50%; transform: translateX(-50%); white-space: nowrap; }
         .game-input { width: 100%; padding: 10px; font-size: 16px; background-color: var(--card-bg); border: 2px solid var(--primary); border-radius: 6px; outline: none; color: var(--text-color); box-sizing: border-box; margin-bottom: 10px; }
         .score-board { display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; margin-bottom: 10px; color: var(--primary); }
-
-        .vocab-table-wrapper { max-height: 300px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; }
-        .vocab-table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; white-space: nowrap; }
-        .vocab-table th, .vocab-table td { padding: 8px; border-bottom: 1px solid var(--border-color); }
-        .vocab-table th { background: var(--primary); color: white; position: sticky; top: 0; }
 
         @media only screen and (max-width: 430px) {
             body { 
@@ -194,7 +185,6 @@
 </head>
 <body>
 
-<!-- Tiêu đề mới đã căn giữa hoàn hảo -->
 <div class="header-row">
     <h1 class="title">JLPT N3 🌸</h1>
     <div class="subtitle">🌸bé Tràm 🌸</div>
@@ -235,7 +225,6 @@
                     <div class="word-main" id="fc-front-text">-</div>
                 </div>
                 
-                <!-- Mặt sau thẻ đã được cấu trúc lại hoàn toàn để cân đối, căn giữa, giãn đều -->
                 <div class="flashcard-back">
                     <span class="card-icon-top star-icon" onclick="toggleStar(event)">☆</span>
                     <span class="card-icon-top eye-icon">👁️ 0</span>
@@ -275,7 +264,7 @@
         </footer>
     </div>
 
-    <!-- CÁC TAB KHÁC -->
+    <!-- TAB TRẮC NGHIỆM -->
     <div id="tab-quiz" class="tab-content" style="display: none;">
         <div class="score-board"><span>Câu hỏi: <span id="quiz-counter">0/0</span></span><span>Điểm: <span id="quiz-score">0</span></span></div>
         <div class="quiz-question" id="quiz-q"></div>
@@ -283,6 +272,7 @@
         <button class="nav-btn" style="margin-top:15px; width:100%; display:none;" id="quiz-next-btn" onclick="nextQuiz()">Câu tiếp theo</button>
     </div>
 
+    <!-- TAB GÕ TỪ -->
     <div id="tab-typing" class="tab-content" style="display: none;">
         <div class="score-board"><span>Điểm: <span id="type-score">0</span></span></div>
         <div class="quiz-question" id="type-q"></div>
@@ -290,6 +280,7 @@
         <p id="type-feedback" style="text-align:center; font-weight:bold; font-size:14px; height:20px;"></p>
     </div>
 
+    <!-- TAB KANJI RƠI -->
     <div id="tab-falling" class="tab-content" style="display: none;">
         <div class="score-board"><span>Điểm: <span id="fall-score">0</span></span><span style="color:#ff5252;">⏱️ <span id="fall-timer">30</span>s</span><span>❤️ <span id="fall-lives">3</span></span></div>
         <div class="game-area" id="fall-area"><div id="falling-word" class="falling-word" style="display: none;"></div></div>
@@ -297,11 +288,22 @@
         <button class="nav-btn" style="width:100%;" id="fall-start-btn" onclick="startFallingGame()">▶ Bắt đầu chơi</button>
     </div>
 
+    <!-- TAB DANH SÁCH (ĐÃ THÊM CỘT 👁️ VÀ THU HẸP DÒNG) -->
     <div id="tab-manager" class="tab-content" style="display: none;">
         <h3 id="manager-title" style="margin:5px 0; font-size:15px; color:var(--primary);">Danh sách</h3>
         <div class="vocab-table-wrapper">
             <table class="vocab-table">
-                <thead><tr><th>Dòng</th><th>⭐</th><th>Từ vựng</th><th>Hán Việt</th><th>Cách đọc</th><th>Ý nghĩa</th></tr></thead>
+                <thead>
+                    <tr>
+                        <th>Dòng</th>
+                        <th>⭐</th>
+                        <th>👁️</th>
+                        <th>Từ vựng</th>
+                        <th>Hán Việt</th>
+                        <th>Cách đọc</th>
+                        <th>Ý nghĩa</th>
+                    </tr>
+                </thead>
                 <tbody id="vocab-list-tbody"></tbody>
             </table>
         </div>
@@ -309,21 +311,16 @@
 </div>
 
 <script>
-    /* THIẾT LẬP GIAO DIỆN CHUẨN TRƯỚC KHI LOAD */
     (function() {
         const savedTheme = localStorage.getItem('app_theme') || 'dark';
         document.documentElement.setAttribute('data-theme', savedTheme);
     })();
 
-    /* ĐÃ SỬA: Cơ chế unlock âm thanh toàn diện cho iOS iPhone */
     function unlockAudio() {
-        window.speechSynthesis.cancel(); // Xóa sạch hàng đợi bị treo trước đó
+        window.speechSynthesis.cancel();
         const u = new SpeechSynthesisUtterance(' ');
-        u.lang = 'ja-JP';
-        u.volume = 0;
+        u.lang = 'ja-JP'; u.volume = 0;
         window.speechSynthesis.speak(u);
-        
-        // Hủy bỏ các event listener sau khi đã kích hoạt thành công
         window.removeEventListener('click', unlockAudio);
         window.removeEventListener('touchstart', unlockAudio);
     }
@@ -553,25 +550,16 @@
         activeWordIndex = 0; updateFlashcard();
     }
 
-    /* ĐÃ SỬA: Sửa dứt điểm lỗi đọc âm thanh trên iPhone iOS Safari */
     function speakJapaneseText(e, text) { 
         if(e) e.stopPropagation(); 
         if(!text) return;
-        
-        // Buộc phải hủy hàng đợi trước đó trên iOS để tránh bị khóa luồng phát âm thanh
         window.speechSynthesis.cancel(); 
-        
         const u = new SpeechSynthesisUtterance(text); 
-        u.lang = 'ja-JP'; 
-        u.rate = 0.88; 
-        u.volume = 1.0;
-        
-        // Thử tìm giọng đọc tiếng Nhật chuẩn nếu hệ thống đã tải xong danh sách giọng
+        u.lang = 'ja-JP'; u.rate = 0.88; u.volume = 1.0;
         if (window.speechSynthesis.getVoices().length > 0) {
             const jaVoice = window.speechSynthesis.getVoices().find(v => v.lang.startsWith('ja'));
             if (jaVoice) u.voice = jaVoice;
         }
-        
         window.speechSynthesis.speak(u); 
     }
     function speakCurrentWord(e) { const w = currentList[activeWordIndex]; speakJapaneseText(e, w.kana || w.kanji); }
@@ -615,13 +603,21 @@
     function checkFall(e) { if(e.key === 'Enter' && isFalling) { const i = document.getElementById('fall-input'); const v = i.value.trim().toLowerCase(); if(v === fallCurrent.kana.toLowerCase() || v === fallCurrent.meaning.toLowerCase()) { clearInterval(fallInterval); fallScore+=10; updateFallBoard(); i.value = ''; spawnFalling(); } else { i.value = ''; } } }
     function updateFallBoard() { document.getElementById('fall-score').innerText = fallScore; document.getElementById('fall-lives').innerText = fallLives; document.getElementById('fall-timer').innerText = timeLeft; }
 
-    /* DANH SÁCH MỞ RỘNG */
+    /* ĐÃ SỬA: Đưa số lần lật (w.flipCount) vào trong danh sách render */
     function renderManagerList() {
         document.getElementById('manager-title').innerText = `Bài học: ${currentSheetName}`;
         const tbody = document.getElementById('vocab-list-tbody'); tbody.innerHTML = '';
         (db[currentSheetName] || []).forEach((w, index) => {
             let tr = document.createElement('tr');
-            tr.innerHTML = `<td>${index + 2}</td><td>${w.starred ? '⭐' : '☆'}</td><td><b>${w.kanji}</b></td><td style="color:#ff85a2; font-weight:bold; text-transform: uppercase;">${w.hanviet || autoTranslateHanViet(w.kanji)}</td><td>${w.kana}</td><td>${w.meaning}</td>`;
+            tr.innerHTML = `
+                <td>${index + 2}</td>
+                <td>${w.starred ? '⭐' : '☆'}</td>
+                <td>${w.flipCount || 0}</td>
+                <td><b>${w.kanji}</b></td>
+                <td style="color:#ff85a2; font-weight:bold; text-transform: uppercase;">${w.hanviet || autoTranslateHanViet(w.kanji)}</td>
+                <td>${w.kana}</td>
+                <td>${w.meaning}</td>
+            `;
             tbody.appendChild(tr);
         });
     }
