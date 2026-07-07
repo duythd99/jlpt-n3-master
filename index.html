@@ -1,17 +1,20 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>JLPT Kanji Master 🌸</title>
-<link rel="apple-touch-icon" href="icon.png">
-    <!-- Cấu hình giúp giao diện chạy tràn viền đẹp như App thật -->
+    
+    <!-- Cấu hình hiển thị App và Icon trên iPhone -->
+    <link rel="apple-touch-icon" href="icon.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="JLPT Kanji">
+
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
-        :root {
+        /* ĐỊNH NGHĨA BIẾN MÀU SẮC CHO 2 CHẾ ĐỘ */
+        :root[data-theme="dark"] {
             --bg-color: #121212;
             --card-bg: #1e1e1e;
             --text-color: #ffffff;
@@ -19,6 +22,20 @@
             --primary: #e91e63;
             --primary-hover: #d81b60;
             --border-color: #333333;
+            --blur-bg: #333333;
+            --game-bg: #1a1a1a;
+        }
+
+        :root[data-theme="light"] {
+            --bg-color: #f5f5f7;
+            --card-bg: #ffffff;
+            --text-color: #1d1d1f;
+            --text-muted: #6e6e73;
+            --primary: #e91e63;
+            --primary-hover: #d81b60;
+            --border-color: #e2e2e7;
+            --blur-bg: #e8e8ed;
+            --game-bg: #eaeaea;
         }
 
         body {
@@ -32,10 +49,31 @@
             align-items: center;
             min-height: 100vh;
             box-sizing: border-box;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 10px;
+        }
+        h1.title { font-size: 20px; margin: 0; color: var(--primary); }
+        
+        .theme-toggle-btn {
+            background: transparent;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            padding: 4px;
+            line-height: 1;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         .container { width: 100%; max-width: 400px; display: flex; flex-direction: column; }
-        h1.title { font-size: 20px; text-align: center; margin: 0 0 10px 0; color: var(--primary); }
 
         .upload-box {
             border: 2px dashed #ffb7d2;
@@ -59,7 +97,7 @@
         #excel-file { display: none; }
 
         .controls-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; gap: 10px; }
-        select { flex: 1; background-color: var(--card-bg); color: white; border: 1px solid var(--border-color); padding: 6px 10px; border-radius: 8px; font-size: 14px; }
+        select { flex: 1; background-color: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color); padding: 6px 10px; border-radius: 8px; font-size: 14px; }
         
         .bookmark-filter { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted); margin-bottom: 10px; cursor: pointer; }
 
@@ -91,7 +129,7 @@
         .fb-kana { font-size: 15px; color: var(--text-muted); font-weight: bold; margin: 4px 0; }
         .fb-mean { font-size: 16px; font-weight: bold; margin-bottom: 10px; }
 
-        .blur-box { filter: blur(6px); background: #333; border-radius: 4px; padding: 2px 8px; cursor: pointer; color: white; display: inline-block; }
+        .blur-box { filter: blur(6px); background: var(--blur-bg); border-radius: 4px; padding: 2px 8px; cursor: pointer; color: transparent; display: inline-block; }
         .blur-box.revealed { filter: none; background: transparent; color: inherit; }
 
         .nav-buttons { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; width: 100%; }
@@ -108,9 +146,9 @@
         .quiz-option.correct { background: #1b5e20; border-color: #4caf50; color: white; }
         .quiz-option.wrong { background: #b71c1c; border-color: #f44336; color: white; }
         
-        .game-area { position: relative; width: 100%; height: 260px; background: #1a1a1a; border-radius: 8px; overflow: hidden; margin-bottom: 10px; border: 2px solid var(--border-color); }
+        .game-area { position: relative; width: 100%; height: 260px; background: var(--game-bg); border-radius: 8px; overflow: hidden; margin-bottom: 10px; border: 2px solid var(--border-color); }
         .falling-word { position: absolute; font-size: 32px; font-weight: bold; color: var(--primary); left: 50%; transform: translateX(-50%); white-space: nowrap; }
-        .game-input { width: 100%; padding: 10px; font-size: 16px; background-color: var(--card-bg); border: 2px solid var(--primary); border-radius: 6px; outline: none; color: white; box-sizing: border-box; margin-bottom: 10px; }
+        .game-input { width: 100%; padding: 10px; font-size: 16px; background-color: var(--card-bg); border: 2px solid var(--primary); border-radius: 6px; outline: none; color: var(--text-color); box-sizing: border-box; margin-bottom: 10px; }
         .score-board { display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; margin-bottom: 10px; color: var(--primary); }
 
         .vocab-table-wrapper { max-height: 280px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; margin-top: 10px; }
@@ -127,9 +165,13 @@
 </head>
 <body>
 
-<div class="container">
+<!-- Tiêu đề và Nút chuyển đổi Giao diện -->
+<div class="header-row">
     <h1 class="title">JLPT Kanji Master 🌸</h1>
+    <button id="theme-toggle" class="theme-toggle-btn" onclick="toggleTheme()">☀️</button>
+</div>
 
+<div class="container">
     <div class="upload-box">
         <p>Chọn file Excel chứa từ vựng cần học:</p>
         <label for="excel-file" class="file-input-label">📁 Nạp Excel Từ Vựng</label>
@@ -159,7 +201,7 @@
             <div class="flashcard-inner">
                 <div class="flashcard-front">
                     <span class="card-icon-top star-icon" onclick="toggleStar(event)">☆</span>
-                    <span class="card-icon-top eye-icon">👁️ 0</span>
+                    <span class="card-icon-top eye-icon" style="color: white;">👁️ 0</span>
                     <div class="word-main" id="fc-front-text">-</div>
                 </div>
                 <div class="flashcard-back">
@@ -229,7 +271,13 @@
 </div>
 
 <script>
-    /* BỘ TỪ ĐIỂN HÁN VIỆT KHỔNG LỒ DỰ PHÒNG */
+    /* KHỞI TẠO THEME TRƯỚC KHI TẢI TRANG ĐỂ TRÁNH BỊ CHỚP MÀN HÌNH */
+    (function() {
+        const savedTheme = localStorage.getItem('app_theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+
+    /* TỪ ĐIỂN HÁN VIỆT HỆ THỐNG DỰ PHÒNG */
     const KANJI_DICTIONARY = {
         "一":"NHẤT","二":"NHỊ","三":"TAM","四":"TỨ","五":"NGŨ","六":"LỤC","七":"THẤT","八":"BÁT","九":"CỬU","十":"THẬP",
         "百":"BÁCH","千":"THIÊN","万":"VẠN","円":"VIÊN","日":"NHẬT","月":"NGUYỆT","火":"HỎA","水":"THỦY","木":"MỘC","金":"KIM",
@@ -256,50 +304,54 @@
         "込":"VÀO","払":"PHẤT","存":"TỒN","在":"TẠI","役":"DỊCH","割":"CÁT","基":"CƠ","准":"CHUẨN","備":"BỊ","営":"DOANH",
         "業":"NGHIỆP","幹":"CÁN","資":"TƯ","産":"SẢN","権":"QUYỀN","利":"LỢI","昨":"TẠC","漸":"TIỆM","急":"CẤP","詐":"TRÁ",
         "穏":"ỔN","作":"TÁC","浸":"TẨM","録":"LỤC","寝":"TẨM","尋":"TẦM","血":"HUYẾT","液":"DỊCH","正常":"CHÁNH THƯỜNG",
-        "正":"CHÁNH","常":"THƯỜNG","追":"TRUY","降":"HÀNG","身":"THÂN","長":"TRƯỜNG","家":"GIA","賃":"NHẪM"
+        "正":"CHÁNH","常":"THƯỜNG","追":"TRUY","降":"HÀNG","身":"THÂN","長":"TRƯỜNG","GIA":"GIA","賃":"NHẪM"
     };
 
-    /* Cải tiến hàm dịch tự động: Ưu tiên tra nguyên cụm từ từ sheet AmHanViet trước, sau đó mới rã chữ đơn */
+    let db = JSON.parse(localStorage.getItem('jlpt_kanji_db')) || {
+        "N3_Mondai_Demo": [
+            { kanji: "得意", kana: "とくい", meaning: "Giỏi, sở trường, đắc ý", exampleJp: "彼女は料理が得意です。", exampleVi: "Cô ấy nấu ăn giỏi.", synonym: "上手", flipCount: 0, starred: false },
+            { kanji: "包む", kana: "つつむ", meaning: "Gói, bọc", exampleJp: "プレゼント teoきれいな紙で包む。", exampleVi: "Gói quà bằng giấy đẹp.", synonym: "", flipCount: 0, starred: false }
+        ]
+    };
+    let currentList = [], activeWordIndex = 0, currentSheetName = "";
+
+    window.onload = () => { 
+        updateThemeToggleIcon();
+        initSheetSelect(); 
+    };
+
+    /* HÀM ĐỔI CHẾ ĐỘ NỀN */
+    function toggleTheme() {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('app_theme', newTheme);
+        updateThemeToggleIcon();
+    }
+
+    function updateThemeToggleIcon() {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        document.getElementById('theme-toggle').innerText = currentTheme === 'light' ? '🌙' : '☀️';
+    }
+
     function autoTranslateHanViet(text, customDb) {
         if (!text) return "";
         const activeDb = customDb || db;
-        
-        // 1. Kiểm tra nếu nguyên cụm từ ghép có mặt trong dictionary từ sheet AmHanViet
-        if (activeDb['_amHanViet'] && activeDb['_amHanViet'][text]) {
-            return activeDb['_amHanViet'][text];
-        }
-
-        // 2. Nếu không có nguyên từ, tiến hành rã từng ký tự đơn
+        if (activeDb['_amHanViet'] && activeDb['_amHanViet'][text]) return activeDb['_amHanViet'][text];
         let result = [];
         for (let char of text) {
             if (/[\u4e00-\u9faf]/.test(char)) {
-                if (activeDb['_amHanViet'] && activeDb['_amHanViet'][char]) {
-                    result.push(activeDb['_amHanViet'][char]);
-                } else {
-                    result.push(KANJI_DICTIONARY[char] || char);
-                }
+                if (activeDb['_amHanViet'] && activeDb['_amHanViet'][char]) result.push(activeDb['_amHanViet'][char]);
+                else result.push(KANJI_DICTIONARY[char] || char);
             }
         }
         return result.length > 0 ? result.join(" ") : "";
     }
 
-    const defaultDb = {
-        "N3_Mondai_Demo": [
-            { kanji: "得意", kana: "とくい", meaning: "Giỏi, sở trường, đắc ý", exampleJp: "彼女は料理が得意です。", exampleVi: "Cô ấy nấu ăn giỏi.", synonym: "上手", flipCount: 0, starred: false },
-            { kanji: "包む", kana: "つつむ", meaning: "Gói, bọc", exampleJp: "プレゼントをきれいな紙で包む。", exampleVi: "Gói quà bằng giấy đẹp.", synonym: "", flipCount: 0, starred: false }
-        ]
-    };
-
-    let db = JSON.parse(localStorage.getItem('jlpt_kanji_db')) || defaultDb;
-    let currentList = [], activeWordIndex = 0, currentSheetName = "";
-
-    window.onload = () => { initSheetSelect(); };
-
     function initSheetSelect() {
-        const select = document.getElementById('lesson-select');
-        select.innerHTML = '';
+        const select = document.getElementById('lesson-select'); select.innerHTML = '';
         for (const sheet in db) {
-            if (sheet === '_amHanViet') continue; // Ẩn cấu trúc từ điển hệ thống, không hiển thị thành bài học
+            if (sheet === '_amHanViet') continue;
             let opt = document.createElement('option'); opt.value = sheet; opt.innerHTML = sheet; select.appendChild(opt);
         }
         loadSheet();
@@ -314,11 +366,9 @@
                 const workbook = XLSX.read(data, { type: 'array' });
                 const newDb = {};
 
-                // BƯỚC 1: Quét tìm dữ liệu âm Hán Việt từ sheet 'AmHanViet' trước (nếu có) để làm từ điển tra cứu
                 if (workbook.SheetNames.includes('AmHanViet')) {
                     const worksheet = workbook.Sheets['AmHanViet'];
-                    let rowIndex = 2; let emptyStreak = 0;
-                    const amHanVietMap = {};
+                    let rowIndex = 2; let emptyStreak = 0; const amHanVietMap = {};
                     while (emptyStreak < 30) {
                         const cellA = worksheet[XLSX.utils.encode_cell({r: rowIndex - 1, c: 0})];
                         const valA = cellA && cellA.v !== undefined ? String(cellA.v).trim() : "";
@@ -326,30 +376,22 @@
                             emptyStreak = 0;
                             const cellB = worksheet[XLSX.utils.encode_cell({r: rowIndex - 1, c: 1})];
                             const valB = cellB && cellB.v !== undefined ? String(cellB.v).trim() : "";
-                            if (valB) {
-                                amHanVietMap[valA] = valB.toUpperCase();
-                            }
+                            if (valB) amHanVietMap[valA] = valB.toUpperCase();
                         } else { emptyStreak++; }
                         rowIndex++;
                     }
                     newDb['_amHanViet'] = amHanVietMap;
                 } else if (db['_amHanViet']) {
-                    // Giữ lại từ điển cũ từ localStorage nếu file Excel mới tải lên không chứa sheet bổ trợ này
                     newDb['_amHanViet'] = db['_amHanViet'];
                 }
 
-                // BƯỚC 2: Quét tất cả các sheet bài học từ vựng thông thường
                 workbook.SheetNames.forEach(sheetName => {
-                    if (sheetName === 'AmHanViet') return; // Bỏ qua không đẩy tab này vào danh mục bài học
-                    
-                    const worksheet = workbook.Sheets[sheetName];
-                    const sheetData = [];
+                    if (sheetName === 'AmHanViet') return;
+                    const worksheet = workbook.Sheets[sheetName]; const sheetData = [];
                     let rowIndex = 2; let emptyStreak = 0;
-
                     while (emptyStreak < 30) {
                         const cellA = worksheet[XLSX.utils.encode_cell({r: rowIndex - 1, c: 0})];
                         const valA = cellA && cellA.v !== undefined ? String(cellA.v).trim() : "";
-                        
                         if (valA) {
                             emptyStreak = 0;
                             const cellB = worksheet[XLSX.utils.encode_cell({r: rowIndex - 1, c: 1})];
@@ -358,13 +400,10 @@
                             const cellE = worksheet[XLSX.utils.encode_cell({r: rowIndex - 1, c: 4})];
                             const cellF = worksheet[XLSX.utils.encode_cell({r: rowIndex - 1, c: 5})];
                             const cellG = worksheet[XLSX.utils.encode_cell({r: rowIndex - 1, c: 6})];
-                            
                             let hv = cellG && cellG.v !== undefined ? String(cellG.v).trim() : "";
                             if (!hv) hv = autoTranslateHanViet(valA, newDb);
-
                             sheetData.push({
-                                kanji: valA,
-                                kana: cellB && cellB.v !== undefined ? String(cellB.v).trim() : "",
+                                kanji: valA, kana: cellB && cellB.v !== undefined ? String(cellB.v).trim() : "",
                                 meaning: cellC && cellC.v !== undefined ? String(cellC.v).trim() : "",
                                 exampleJp: cellD && cellD.v !== undefined ? String(cellD.v).trim() : "",
                                 exampleVi: cellE && cellE.v !== undefined ? String(cellE.v).trim() : "",
@@ -377,13 +416,10 @@
                     if (sheetData.length > 0) newDb[sheetName] = sheetData;
                 });
 
-                // Kiểm tra xem file có chứa sheet bài học nào ngoài sheet bổ trợ không
                 if (Object.keys(newDb).filter(k => k !== '_amHanViet').length > 0) {
                     db = newDb; saveToLocalStorage(); alert("🎉 Đồng bộ dữ liệu Excel và sheet AmHanViet thành công!"); initSheetSelect();
                 } else { alert("Lỗi: Không tìm thấy dữ liệu bài học phù hợp!"); }
-            } catch (err) {
-                alert("Đã xảy ra lỗi khi đọc file: " + err.message);
-            }
+            } catch (err) { alert("Đã xảy ra lỗi khi đọc file: " + err.message); }
         };
         reader.readAsArrayBuffer(file);
     }
@@ -392,12 +428,8 @@
         const selectVal = document.getElementById('lesson-select').value;
         currentSheetName = selectVal || Object.keys(db).filter(k => k !== '_amHanViet')[0];
         if (!currentSheetName) return;
-
         document.getElementById('only-bookmarked').checked = false;
-        currentList = (db[currentSheetName] || []).map(w => {
-            w.hanviet = autoTranslateHanViet(w.kanji); // Đồng bộ hoặc cập nhật lại âm Hán Việt chuẩn xác theo dữ liệu mới nhất
-            return w;
-        });
+        currentList = (db[currentSheetName] || []).map(w => { w.hanviet = autoTranslateHanViet(w.kanji); return w; });
         activeWordIndex = 0; updateFlashcard(); initQuiz(); initTyping(); resetFallingGame();
     }
 
@@ -418,7 +450,8 @@
         document.getElementById('fc-front-text').innerText = word.kanji;
         
         const views = `👁️ ${word.flipCount || 0}`;
-        document.querySelectorAll('.eye-icon').forEach(el => el.innerText = views);
+        document.querySelectorAll('.eye-icon').forEach(el => { if(!el.removeAttribute('style')) el.innerText = views; });
+        document.querySelector('.flashcard-front .eye-icon').innerText = views;
         updateStarUI();
 
         document.getElementById('fc-hanviet').innerText = word.hanviet || autoTranslateHanViet(word.kanji);
@@ -458,7 +491,10 @@
     function toggleStar(e) { e.stopPropagation(); if(!currentList[activeWordIndex]) return; currentList[activeWordIndex].starred = !currentList[activeWordIndex].starred; saveToLocalStorage(); updateStarUI(); }
     function updateStarUI() {
         const word = currentList[activeWordIndex]; if(!word) return;
-        document.querySelectorAll('.star-icon').forEach(el => { el.innerText = word.starred ? "⭐" : "☆"; el.style.color = word.starred ? "#ffc107" : "#fff"; });
+        document.querySelectorAll('.star-icon').forEach(el => { 
+            el.innerText = word.starred ? "⭐" : "☆"; 
+            el.style.color = word.starred ? "#ffc107" : ""; 
+        });
     }
     function toggleStarredFilter() {
         const full = db[currentSheetName] || [];
