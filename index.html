@@ -307,7 +307,6 @@
         <button class="mode-btn" onclick="switchTab('tab-manager', this)">Xem Danh Sách</button>
     </div>
 
-    <!-- TAB FLASHCARD -->
     <div id="tab-flashcard" class="tab-content" style="display: flex;">
         <div class="flashcard" id="flashcard-container" onclick="flipCard()">
             <div class="flashcard-inner">
@@ -376,7 +375,6 @@
         </footer>
     </div>
 
-    <!-- TAB GÕ TỪ -->
     <div id="tab-typing" class="tab-content" style="display: none;">
         <div class="quiz-stats-board">
             <div class="stat-item">
@@ -409,7 +407,6 @@
         </div>
     </div>
 
-    <!-- TAB DANH SÁCH -->
     <div id="tab-manager" class="tab-content" style="display: none;">
         <div class="search-box-wrapper">
             <input type="text" id="vocab-search-input" class="search-input" placeholder="🔍 Nhập Kanji, Hán Việt hoặc Ý nghĩa để tra từ..." oninput="filterManagerList()">
@@ -460,17 +457,17 @@
         document.documentElement.setAttribute('data-theme', savedTheme);
     })();
 
+    // PHẦN SỬA LỖI ÂM THANH IPHONE (UNLOCK AUDIO TRỰC TIẾP)
     function unlockAudio() {
         try {
             window.speechSynthesis.cancel();
-            const u = new SpeechSynthesisUtterance(''); // Chuỗi rỗng
+            const u = new SpeechSynthesisUtterance(''); 
             window.speechSynthesis.speak(u);
-            window.speechSynthesis.resume(); // Rất quan trọng để "đánh thức" iOS Safari
+            window.speechSynthesis.resume(); // Đánh thức luồng audio trên iOS
         } catch(e) { console.log(e); }
         window.removeEventListener('click', unlockAudio);
         window.removeEventListener('touchstart', unlockAudio);
     }
-    
     window.addEventListener('click', unlockAudio);
     window.addEventListener('touchstart', unlockAudio);
 
@@ -483,7 +480,7 @@
         "N3_Mondai_Demo": [
             { kanji: "頑丈", kana: "がんじょう", meaning: "Chắc chắn, cứng cáp, khỏe mạnh", exampleJp: "この棚は頑丈に作られている。", exampleVi: "Cái kệ này được làm (chế tạo) rất chắc chắn.", synonym: "", flipCount: 0, starred: false },
             { kanji: "圧倒的", kana: "あっとうてき", meaning: "Một cách áp đảo, vượt trội", exampleJp: "圧倒的な強さで優勝した。", exampleVi: "Giành chiến thắng nhờ sức mạnh áp đảo.", synonym: "優勢", flipCount: 0, starred: false },
-            { kanji: "示唆", kana: "しさ", meaning: "Ám thị, khơi gợi, gợi ý", exampleJp: "彼の発言は多くのことを示唆している。", exampleVi: "Phát ngôn của anh ấy gợi ý rất nhiều điều.", synonym: "", flipCount: 0, starred: false }
+            { kanji: "示唆", kana: "しさ", meaning: "Ám thị, khơi gợi, gợi ý", exampleJp: "彼の発言は多くのことを示唆している。", exampleVi: "Phân tích phát ngôn của anh ấy gợi ý nhiều điều.", synonym: "", flipCount: 0, starred: false }
         ]
     };
     let currentList = [], activeWordIndex = 0, currentSheetName = "";
@@ -614,8 +611,10 @@
         if(searchInput) searchInput.value = '';
 
         currentList = (db[currentSheetName] || []).map(w => { w.hanviet = autoTranslateHanViet(w.kanji); return w; });
-        activeWordIndex = 0; updateFlashcard(); resetTypingCounters();
-        if(document.getElementById('tab-manager').style.display === 'flex') { renderManagerList(); }
+        activeWordIndex = 0; 
+        updateFlashcard(); 
+        resetTypingCounters();
+        filterManagerList();
     }
 
     function saveToLocalStorage() { localStorage.setItem('jlpt_kanji_db', JSON.stringify(db)); }
@@ -627,10 +626,16 @@
         document.getElementById(tabId).style.display = 'flex';
         if(btn) btn.classList.add('active');
         if(tabId === 'tab-manager') {
-            document.getElementById('vocab-search-input').value = '';
-            renderManagerList();
+            filterManagerList();
         }
-        if(tabId === 'tab-typing') { updateTypingStatsUI(); setTimeout(() => document.getElementById('type-input').focus(), 150); }
+        if(tabId === 'tab-flashcard') {
+            updateFlashcard();
+        }
+        if(tabId === 'tab-typing') { 
+            updateTypingStatsUI(); 
+            loadNextType();
+            setTimeout(() => document.getElementById('type-input').focus(), 150); 
+        }
     }
 
     function updateFlashcard() {
@@ -641,6 +646,8 @@
             document.getElementById('card-counter').innerText = `0 / 0`;
             return; 
         }
+        if (activeWordIndex >= currentList.length) activeWordIndex = 0;
+        
         const word = currentList[activeWordIndex];
         document.getElementById('fc-front-text').innerText = word.kanji;
         
@@ -652,11 +659,12 @@
         document.getElementById('fc-kana').innerText = word.kana ? `[ ${word.kana} ]` : '';
         document.getElementById('fc-meaning').innerText = word.meaning;
 
+        // Reset trạng thái làm mờ về ban đầu cho thẻ mới
         const sameBox = document.getElementById('fc-same-box');
         if (word.synonym) { 
             const sameEl = document.getElementById('fc-same');
             sameEl.innerText = word.synonym; 
-            sameEl.classList.remove('revealed');
+            sameEl.classList.remove('revealed'); // Trả về dạng mờ
             sameBox.style.display = 'block'; 
         } else { sameBox.style.display = 'none'; }
 
@@ -665,7 +673,7 @@
             document.getElementById('fc-ex-jp').innerHTML = highlightKeyword(word.exampleJp, word.kanji);
             const viEl = document.getElementById('fc-ex-vi');
             viEl.innerText = word.exampleVi || 'Chưa có bản dịch';
-            viEl.classList.remove('revealed'); 
+            viEl.classList.remove('revealed'); // Trả về dạng mờ
             exBox.style.display = 'flex';
         } else { exBox.style.display = 'none'; }
 
@@ -681,6 +689,7 @@
         document.getElementById('fc-gemini').href = `https://gemini.google.com/?q=Phân tích từ vựng N3: "${word.kanji}"`;
     }
 
+    // TÍNH NĂNG NHẬP SẴN TỪ KHI MỞ MAZII (DEEP LINK CHUẨN)
     function openMaziiApp(e) {
         if(e) e.stopPropagation();
         if(currentList.length === 0) return;
@@ -703,7 +712,6 @@
     function handleDifficulty(level, event) {
         if(event) event.stopPropagation();
         if(currentList.length === 0) return;
-        console.log(`Từ [${currentList[activeWordIndex].kanji}] mức độ: ${level}`);
         nextCard();
     }
 
@@ -720,7 +728,21 @@
     function prevCard() { if(currentList.length === 0) return; if(activeWordIndex > 0) activeWordIndex--; else activeWordIndex = currentList.length - 1; updateFlashcard(); }
     function shuffleCards() { if(currentList.length === 0) return; currentList.sort(() => Math.random() - 0.5); activeWordIndex = 0; updateFlashcard(); }
     
-    function toggleStar(e) { e.stopPropagation(); if(!currentList[activeWordIndex]) return; currentList[activeWordIndex].starred = !currentList[activeWordIndex].starred; saveToLocalStorage(); updateStarUI(); }
+    // TỰ ĐỘNG CẬP NHẬT KHI THAO TÁC TRÊN FLASHCARD
+    function toggleStar(e) { 
+        e.stopPropagation(); 
+        if(!currentList[activeWordIndex]) return; 
+        currentList[activeWordIndex].starred = !currentList[activeWordIndex].starred; 
+        saveToLocalStorage(); 
+        updateStarUI(); 
+        
+        if(document.getElementById('only-bookmarked').checked) {
+            toggleStarredFilter(); 
+        } else {
+            filterManagerList();
+        }
+    }
+
     function updateStarUI() {
         const word = currentList[activeWordIndex]; if(!word) return;
         document.querySelectorAll('.star-icon').forEach(el => { 
@@ -729,37 +751,48 @@
         });
     }
     
+    // TỰ ĐỘNG CẬP NHẬT TRẠNG THÁI BỘ LỌC SAO
     function toggleStarredFilter() {
         const full = db[currentSheetName] || [];
-        currentList = document.getElementById('only-bookmarked').checked ? full.filter(w => w.starred) : [...full];
-        if(currentList.length === 0) { alert("Chưa có thẻ đánh dấu!"); document.getElementById('only-bookmarked').checked = false; currentList = [...full]; }
-        
-        const searchInput = document.getElementById('vocab-search-input');
-        if(searchInput) searchInput.value = '';
-
-        activeWordIndex = 0; updateFlashcard();
+        if (document.getElementById('only-bookmarked').checked) {
+            currentList = full.filter(w => w.starred);
+            if(currentList.length === 0) { 
+                alert("Chưa có thẻ đánh dấu ⭐ trong bài học này!"); 
+                document.getElementById('only-bookmarked').checked = false; 
+                currentList = [...full]; 
+            }
+        } else {
+            currentList = [...full];
+        }
+        activeWordIndex = 0; 
+        updateFlashcard();
+        filterManagerList();
     }
 
+    // PHẦN PHÁT ÂM THANH KHÔNG BỊ TRỄ HOẶC JAM TRÊN IPHONE
     function speakJapaneseText(e, text) { 
         if(e) e.stopPropagation(); 
         if(!text) return;
         
-        // Hủy các hàng đợi âm thanh cũ bị kẹt
-        window.speechSynthesis.cancel(); 
+        window.speechSynthesis.cancel(); // Giải phóng hàng đợi cũ bị tắc
         
-        // Đợi 50ms để lệnh cancel() hoàn tất trọn vẹn trên điện thoại
         setTimeout(() => {
             const u = new SpeechSynthesisUtterance(text.replace(/<[^>]*>/g, '')); 
             u.lang = 'ja-JP'; 
             u.rate = 0.88;
+            
+            u.onstart = () => { window.speechSynthesis.resume(); };
+            u.onerror = () => { window.speechSynthesis.resume(); };
+            
             window.speechSynthesis.speak(u); 
-            window.speechSynthesis.resume(); // Ép trình duyệt tiếp tục đọc, chống kẹt âm
+            window.speechSynthesis.resume(); 
         }, 50);
     }
     
     function speakCurrentWord(e) { const w = currentList[activeWordIndex]; speakJapaneseText(e, w.kana || w.kanji); }
     function speakCurrentExample(e) { speakJapaneseText(e, currentList[activeWordIndex].exampleJp); }
     
+    // HÀM LÀM MỜ / HIỂN THỊ CHUẨN HOẠT ĐỘNG
     function revealBlur(e, el) { 
         if(e) e.stopPropagation(); 
         el.classList.toggle('revealed'); 
@@ -838,16 +871,13 @@
         setTimeout(loadNextType, 1200);
     }
 
-    function renderManagerList() {
-        document.getElementById('manager-title').innerText = `Bài học: ${currentSheetName}`;
-        filterManagerList(); 
-    }
-
+    // TỰ ĐỘNG LÀM MỚI DANH SÁCH & ĐỒNG BỘ THAO TÁC SAO
     function filterManagerList() {
         const keyword = document.getElementById('vocab-search-input').value.trim().toLowerCase();
         const tbody = document.getElementById('vocab-list-tbody'); 
         tbody.innerHTML = '';
         
+        document.getElementById('manager-title').innerText = `Bài học: ${currentSheetName}`;
         const baseDataList = currentList; 
         
         baseDataList.forEach((w, index) => {
@@ -877,17 +907,26 @@
         });
     }
 
+    // CLICK SAO TRONG DANH SÁCH TỰ ĐỘNG CẬP NHẬT TOÀN DIỆN
     function toggleStarFromList(index) {
-        const listData = db[currentSheetName] || [];
-        if (listData[index]) {
-            listData[index].starred = !listData[index].starred;
+        const full = db[currentSheetName] || [];
+        if (full[index]) {
+            full[index].starred = !full[index].starred;
             saveToLocalStorage();
             
-            const full = db[currentSheetName] || [];
-            if(document.getElementById('only-bookmarked').checked) {
+            // Tính toán lại danh sách hiển thị dựa trên trạng thái nút lọc sao
+            if (document.getElementById('only-bookmarked').checked) {
                 currentList = full.filter(w => w.starred);
+                if (currentList.length === 0) {
+                    document.getElementById('only-bookmarked').checked = false;
+                    currentList = [...full];
+                }
             } else {
                 currentList = [...full];
+            }
+            
+            if (activeWordIndex >= currentList.length) {
+                activeWordIndex = Math.max(0, currentList.length - 1);
             }
             
             filterManagerList(); 
@@ -904,7 +943,7 @@
         document.getElementById('modal-meaning-text').innerText = word.meaning;
         
         const modalViEl = document.getElementById('modal-example-vi');
-        modalViEl.classList.remove('revealed'); 
+        modalViEl.classList.remove('revealed'); // Khởi tạo ẩn mờ cho popup
 
         if (word.exampleJp) {
             document.getElementById('modal-example-jp').innerHTML = highlightKeyword(word.exampleJp, word.kanji);
