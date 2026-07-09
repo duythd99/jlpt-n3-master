@@ -463,13 +463,14 @@
     function unlockAudio() {
         try {
             window.speechSynthesis.cancel();
-            const u = new SpeechSynthesisUtterance(' ');
-            u.lang = 'ja-JP'; u.volume = 0;
+            const u = new SpeechSynthesisUtterance(''); // Chuỗi rỗng
             window.speechSynthesis.speak(u);
+            window.speechSynthesis.resume(); // Rất quan trọng để "đánh thức" iOS Safari
         } catch(e) { console.log(e); }
         window.removeEventListener('click', unlockAudio);
         window.removeEventListener('touchstart', unlockAudio);
     }
+    
     window.addEventListener('click', unlockAudio);
     window.addEventListener('touchstart', unlockAudio);
 
@@ -742,11 +743,20 @@
     function speakJapaneseText(e, text) { 
         if(e) e.stopPropagation(); 
         if(!text) return;
+        
+        // Hủy các hàng đợi âm thanh cũ bị kẹt
         window.speechSynthesis.cancel(); 
-        const u = new SpeechSynthesisUtterance(text.replace(/<[^>]*>/g, '')); 
-        u.lang = 'ja-JP'; u.rate = 0.88;
-        window.speechSynthesis.speak(u); 
+        
+        // Đợi 50ms để lệnh cancel() hoàn tất trọn vẹn trên điện thoại
+        setTimeout(() => {
+            const u = new SpeechSynthesisUtterance(text.replace(/<[^>]*>/g, '')); 
+            u.lang = 'ja-JP'; 
+            u.rate = 0.88;
+            window.speechSynthesis.speak(u); 
+            window.speechSynthesis.resume(); // Ép trình duyệt tiếp tục đọc, chống kẹt âm
+        }, 50);
     }
+    
     function speakCurrentWord(e) { const w = currentList[activeWordIndex]; speakJapaneseText(e, w.kana || w.kanji); }
     function speakCurrentExample(e) { speakJapaneseText(e, currentList[activeWordIndex].exampleJp); }
     
