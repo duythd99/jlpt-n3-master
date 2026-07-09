@@ -13,7 +13,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
-        /* ĐÃ CẬP NHẬT MÃ MÀU CHUẨN XÁC THEO PALETTE TRONG ẢNH image_c3c482.jpg */
         :root[data-theme="light"] {
             --bg-color: #FFF3F7;
             --card-bg: #FFFFFF;
@@ -55,6 +54,13 @@
             --highlight-text: #FF8CC8;
             --shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
         }
+
+        /* KHAI BÁO FONT KYOKASHOTAI CHỈ DÙNG CHO POPUP */
+        @font-face {
+            font-family: "Kyokasho-Fallback";
+            src: local("UD Digi Kyokasho NK-R"), local("UD Digi Kyokasho N-R"), local("YuKyokashoYoko-Medium"), local("YuKyokasho"), local("HGKyokashotai");
+        }
+        .kyokasho-font { font-family: "Kyokasho-Fallback", serif !important; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -122,10 +128,7 @@
         .select-wrapper label { font-size: 13px; font-weight: 700; color: var(--text-muted); white-space: nowrap; }
         select { width: 100%; background-color: transparent; color: var(--text-color); border: none; padding: 4px 0; font-size: 14px; outline: none; font-weight: 600; cursor: pointer; }
         
-        select option {
-            background-color: var(--option-bg);
-            color: var(--option-text);
-        }
+        select option { background-color: var(--option-bg); color: var(--option-text); }
 
         .file-input-label {
             display: inline-flex;
@@ -148,13 +151,7 @@
         .mode-btn { background-color: var(--card-bg); color: var(--text-muted); border: 1px solid var(--border-color); padding: 12px 4px; border-radius: 14px; font-size: 13px; cursor: pointer; font-weight: 700; text-align: center; box-shadow: var(--shadow); transition: all 0.2s; }
         .mode-btn.active { background-color: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 10px rgba(217, 79, 138, 0.25); }
 
-        .tab-content {
-            display: none;
-            flex-direction: column;
-            width: 100%;
-            flex: 1;
-            overflow: hidden;
-        }
+        .tab-content { display: none; flex-direction: column; width: 100%; flex: 1; overflow: hidden; }
 
         .flashcard { width: 100%; height: 325px; perspective: 1000px; margin: 2px 0; cursor: pointer; }
         .flashcard-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.4s ease-out; transform-style: preserve-3d; -webkit-transform-style: preserve-3d; }
@@ -171,7 +168,7 @@
         .star-icon { left: 18px; }
         .eye-icon { right: 18px; font-size: 13px; color: var(--text-muted); font-weight: 600; }
 
-        .word-main { font-size: 52px; font-weight: 700; margin: 0; color: var(--text-color); font-family: "Hiragino Mincho ProN", "Yu Mincho", serif; letter-spacing: 1px; }
+        .word-main { font-size: 52px; font-weight: 700; margin: 0; color: var(--text-color); letter-spacing: 1px; }
         .audio-btn { background: rgba(217, 79, 138, 0.12); border: none; color: var(--primary); border-radius: 50%; width: 34px; height: 34px; font-size: 13px; cursor: pointer; margin-left: 8px; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; transition: background 0.2s; }
         .audio-btn:active { background: rgba(217, 79, 138, 0.25); }
 
@@ -183,13 +180,7 @@
         .blur-box { filter: blur(6px); background: var(--blur-bg); border-radius: 8px; padding: 3px 12px; cursor: pointer; color: transparent; display: inline-block; transition: filter 0.2s ease, background 0.2s; user-select: none; }
         .blur-box.revealed { filter: none; background: transparent; color: inherit; user-select: text; }
 
-        mark.highlight-word {
-            background-color: var(--highlight-bg);
-            color: var(--highlight-text);
-            font-weight: 700;
-            padding: 2px 6px;
-            border-radius: 6px;
-        }
+        mark.highlight-word { background-color: var(--highlight-bg); color: var(--highlight-text); font-weight: 700; padding: 2px 6px; border-radius: 6px; }
 
         .nav-buttons { display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 10px; margin-top: 2px; }
         .nav-btn { flex: 1; background-color: var(--primary); color: white; border: none; padding: 14px; border-radius: 16px; font-weight: 700; cursor: pointer; font-size: 15px; box-shadow: 0 4px 10px rgba(217, 79, 138, 0.2); transition: opacity 0.1s; }
@@ -213,7 +204,6 @@
         footer { display: flex; justify-content: center; gap: 16px; font-size: 13px; margin-top: auto; margin-bottom: 4px; padding-top: 8px; }
         footer a { color: var(--primary); text-decoration: none; font-weight: 700; cursor: pointer; }
 
-        /* GÕ TỪ */
         .quiz-stats-board { display: flex; justify-content: space-around; background-color: var(--card-bg); padding: 12px; border-radius: 14px; border: 1px solid var(--border-color); font-size: 13px; font-weight: 700; margin-bottom: 4px; box-shadow: var(--shadow); }
         .stat-item { display: flex; flex-direction: column; align-items: center; gap: 2px; }
         .stat-label { color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -222,7 +212,7 @@
         .stat-val.total { color: var(--text-color); font-size: 15px; }
 
         .quiz-card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 24px; padding: 28px 20px; display: flex; flex-direction: column; align-items: center; gap: 16px; flex: 1; justify-content: center; box-shadow: var(--shadow); }
-        .quiz-question { font-size: 52px; font-weight: 700; text-align: center; color: var(--primary); margin: 0; font-family: "Hiragino Mincho ProN", serif; }
+        .quiz-question { font-size: 52px; font-weight: 700; text-align: center; color: var(--primary); margin: 0; }
         .quiz-hint-wrapper { text-align: center; font-size: 14px; color: var(--text-muted); }
         .quiz-hint-text { font-weight: 700; color: var(--accent); font-size: 16px; margin-top: 4px; display: block; }
 
@@ -230,51 +220,26 @@
         .game-input:focus { border-color: var(--primary); }
         .type-actions { width: 100%; display: flex; flex-direction: column; gap: 8px; }
 
-        /* DANH SÁCH */
         .search-box-wrapper { width: 100%; margin-bottom: 8px; box-sizing: border-box; }
         .search-input { width: 100%; padding: 12px 16px; font-size: 14px; background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; outline: none; color: var(--text-color); box-sizing: border-box; transition: border-color 0.2s; box-shadow: var(--shadow); }
         .search-input:focus { border-color: var(--primary); }
 
-        .vocab-table-wrapper { 
-            flex: 1; 
-            overflow-y: auto; 
-            overflow-x: auto; 
-            border: 1px solid var(--border-color); 
-            border-radius: 20px; 
-            background: var(--card-bg); 
-            -webkit-overflow-scrolling: touch; 
-            margin-bottom: 4px;
-            box-shadow: var(--shadow);
-        }
+        .vocab-table-wrapper { flex: 1; overflow-y: auto; overflow-x: auto; border: 1px solid var(--border-color); border-radius: 20px; background: var(--card-bg); -webkit-overflow-scrolling: touch; margin-bottom: 4px; box-shadow: var(--shadow); }
         .vocab-table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; white-space: nowrap; }
         .vocab-table th, .vocab-table td { padding: 14px 12px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
         .vocab-table th { background: var(--primary); color: white; position: sticky; top: 0; z-index: 100; font-weight: 700; }
 
-        /* POPUP CHỦ ĐỀ */
-        .modal-overlay { 
-            display: none; 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            background-color: rgba(0, 0, 0, 0.55);
-            z-index: 2000; 
-            justify-content: center; 
-            align-items: center; 
-            backdrop-filter: blur(5px); 
-            -webkit-backdrop-filter: blur(5px);
-        }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.55); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
         .modal-content { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 26px; padding: 32px 24px 24px 24px; text-align: center; position: relative; width: 88%; max-width: 360px; box-shadow: 0 10px 30px rgba(0,0,0,0.25); z-index: 2011; }
         .modal-close { position: absolute; top: 12px; right: 18px; font-size: 22px; cursor: pointer; color: var(--text-muted); }
-        .modal-kanji { font-size: 52px; font-weight: 700; color: var(--primary); font-family: "Hiragino Mincho ProN", serif; }
+        /* POPUP KANJI CHỈ DÙNG FONT ĐẶC BIỆT */
+        .modal-kanji { font-size: 52px; font-weight: 700; color: var(--primary); }
         .modal-hanviet { margin-top: 6px; font-size: 16px; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; margin: 0; }
         .modal-kana { margin-top: 4px; font-size: 15px; color: var(--text-color); }
         .modal-meaning { margin-top: 8px; font-size: 18px; font-weight: 700; }
         .modal-divider { border: none; border-top: 1px dashed var(--border-color); margin: 16px 0; }
         .modal-example-jp { font-size: 15px; color: var(--text-color); line-height: 1.45; margin-bottom: 6px; }
         .modal-example-vi { font-size: 13px; color: var(--text-muted); line-height: 1.45; display: inline-block; }
-        
         .modal-action-btn { background-color: transparent; border: 1px solid var(--primary); color: var(--primary); padding: 8px 18px; border-radius: 20px; font-size: 13px; font-weight: 700; cursor: pointer; margin-top: 12px; transition: all 0.2s; }
         .modal-action-btn:hover { background-color: var(--primary); color: white; }
     </style>
@@ -306,7 +271,6 @@
         <button class="mode-btn" onclick="switchTab('tab-manager', this)">Xem Danh Sách</button>
     </div>
 
-    <!-- TAB FLASHCARD -->
     <div id="tab-flashcard" class="tab-content" style="display: flex;">
         <div class="flashcard" id="flashcard-container" onclick="flipCard()">
             <div class="flashcard-inner">
@@ -375,7 +339,6 @@
         </footer>
     </div>
 
-    <!-- TAB GÕ TỪ -->
     <div id="tab-typing" class="tab-content" style="display: none;">
         <div class="quiz-stats-board">
             <div class="stat-item">
@@ -408,7 +371,6 @@
         </div>
     </div>
 
-    <!-- TAB DANH SÁCH -->
     <div id="tab-manager" class="tab-content" style="display: none;">
         <div class="search-box-wrapper">
             <input type="text" id="vocab-search-input" class="search-input" placeholder="🔍 Nhập Kanji, Hán Việt hoặc Ý nghĩa để tra từ..." oninput="filterManagerList()">
@@ -437,7 +399,7 @@
 <div id="kanji-popup" class="modal-overlay" onclick="closeKanjiPopup()">
     <div class="modal-content" onclick="event.stopPropagation()">
         <span class="modal-close" onclick="closeKanjiPopup()">&times;</span>
-        <div id="modal-kanji-text" class="modal-kanji"></div>
+        <div id="modal-kanji-text" class="modal-kanji kyokasho-font"></div>
         <div id="modal-hanviet-text" class="modal-hanviet"></div>
         <div id="modal-kana-text" class="modal-kana"></div>
         <div id="modal-meaning-text" class="modal-meaning"></div>
@@ -793,7 +755,6 @@
     function speakCurrentExample(e) { speakJapaneseText(e, currentList[activeWordIndex].exampleJp); }
     function revealBlur(e, el) { if(e) e.stopPropagation(); el.classList.toggle('revealed'); }
 
-    /* LOGIC PHẦN GÕ TỪ */
     let typeCurrent = null;
     
     function resetTypingCounters() {
