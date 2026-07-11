@@ -69,10 +69,12 @@
             flex-direction: column;
             align-items: center;
             height: 100vh;
+            height: 100dvh; /* TỐI ƯU IPHONE: Sửa lỗi hiển thị khi quay về từ app khác / thay đổi chiều cao thanh công cụ */
             box-sizing: border-box;
             transition: background-color 0.3s, color 0.3s;
             -webkit-tap-highlight-color: transparent;
             overflow: hidden;
+            position: relative;
         }
 
         .header-row {
@@ -84,6 +86,7 @@
             max-width: 430px;
             margin-bottom: 12px;
             margin-top: calc(env(safe-area-inset-top) + 4px);
+            flex-shrink: 0;
         }
         h1.title { font-size: 24px; margin: 0; color: var(--primary); font-weight: bold; text-align: center; line-height: 1.2; }
         h1.title span { font-size: 16px; display: block; margin-top: 4px; }
@@ -123,6 +126,7 @@
             padding: 10px 14px;
             border-radius: 14px;
             border: 1px solid var(--border-color);
+            flex-shrink: 0;
         }
         .select-wrapper { display: flex; align-items: center; gap: 6px; flex: 1; }
         .select-wrapper label { font-size: 13px; font-weight: bold; color: var(--text-muted); white-space: nowrap; }
@@ -146,9 +150,9 @@
         .file-input-label:hover { opacity: 0.9; }
         #excel-file { display: none; }
 
-        .bookmark-filter { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; color: var(--text-muted); margin: -2px 0; cursor: pointer; font-weight: 500; }
+        .bookmark-filter { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; color: var(--text-muted); margin: -2px 0; cursor: pointer; font-weight: 500; flex-shrink: 0; }
 
-        .mode-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .mode-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; flex-shrink: 0; }
         .mode-btn { background-color: transparent; color: var(--text-muted); border: 1.5px solid var(--border-color); padding: 12px 2px; border-radius: 12px; font-size: 13px; cursor: pointer; font-weight: 600; text-align: center; transition: all 0.2s;}
         .mode-btn.active { background-color: var(--primary); color: white; border-color: var(--primary); }
         :root[data-theme="dark"] .mode-btn.active { background-color: var(--primary); color: white; border-color: var(--primary); }
@@ -156,7 +160,7 @@
         .tab-content { display: none; flex-direction: column; width: 100%; flex: 1; overflow: hidden; }
 
         /* CARD STYLE */
-        .flashcard { width: 100%; height: 320px; perspective: 1000px; margin: 4px 0; cursor: pointer; }
+        .flashcard { width: 100%; height: 320px; perspective: 1000px; margin: 4px 0; cursor: pointer; flex-shrink: 0; }
         .flashcard-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.4s; transform-style: preserve-3d; -webkit-transform-style: preserve-3d; }
         .flashcard.flipped .flashcard-inner { transform: rotateY(180deg); -webkit-transform: rotateY(180deg); }
         
@@ -184,7 +188,7 @@
 
         mark.highlight-word { background-color: var(--highlight-bg); color: var(--highlight-text); font-weight: bold; padding: 0 4px; border-radius: 4px; }
 
-        .nav-buttons { display: flex; justify-content: space-between; align-items: stretch; width: 100%; gap: 10px; margin-top: 4px; }
+        .nav-buttons { display: flex; justify-content: space-between; align-items: stretch; width: 100%; gap: 10px; margin-top: 4px; flex-shrink: 0; }
         .nav-btn { padding: 14px 4px; border-radius: 16px; font-weight: bold; cursor: pointer; font-size: 15px; border: 1.5px solid transparent; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
         
         .nav-btn.btn-prev { flex: 1.1; background-color: var(--primary); color: white; border-color: var(--primary); }
@@ -194,12 +198,12 @@
         
         .nav-btn.btn-next { flex: 1.1; background-color: var(--primary); color: white; }
 
-        .progress-container { width: 100%; display: flex; flex-direction: column; gap: 4px; margin: 2px 0; }
+        .progress-container { width: 100%; display: flex; flex-direction: column; gap: 4px; margin: 2px 0; flex-shrink: 0; }
         .progress-bar-bg { width: 100%; height: 6px; background-color: var(--border-color); border-radius: 3px; overflow: hidden; }
         .progress-bar-fill { height: 100%; width: 0%; background-color: var(--primary); transition: width 0.3s ease; }
         .progress-info { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: var(--text-muted); }
 
-        .difficulty-panel { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; width: 100%; margin: 8px 0; }
+        .difficulty-panel { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; width: 100%; margin: 8px 0; flex-shrink: 0; }
         .diff-btn { border: none; padding: 10px 4px; border-radius: 12px; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; transition: transform 0.1s, opacity 0.2s; }
         .diff-btn:active { transform: scale(0.96); }
         
@@ -219,11 +223,11 @@
 
         .diff-btn span:last-child { font-size: 11px; font-weight: normal; opacity: 0.9; color: inherit; }
 
-        footer { display: flex; justify-content: center; gap: 15px; font-size: 13px; margin-top: auto; margin-bottom: 4px; padding-top: 8px; }
+        footer { display: flex; justify-content: center; gap: 15px; font-size: 13px; margin-top: auto; margin-bottom: 4px; padding-top: 8px; flex-shrink: 0; }
         footer a { color: var(--primary); text-decoration: none; font-weight: bold; cursor: pointer; }
 
         /* GIAO DIỆN MỤC GÕ TỪ */
-        .quiz-stats-board { display: flex; justify-content: space-around; background-color: var(--card-bg); padding: 10px; border-radius: 12px; border: 1px solid var(--border-color); font-size: 13px; font-weight: bold; margin-bottom: 5px; }
+        .quiz-stats-board { display: flex; justify-content: space-around; background-color: var(--card-bg); padding: 10px; border-radius: 12px; border: 1px solid var(--border-color); font-size: 13px; font-weight: bold; margin-bottom: 5px; flex-shrink: 0; }
         .stat-item { display: flex; flex-direction: column; align-items: center; gap: 2px; }
         .stat-label { color: var(--text-muted); font-size: 11px; text-transform: uppercase; }
         .stat-val.correct { color: var(--success); font-size: 15px; }
@@ -239,7 +243,7 @@
         .game-input:focus { border-color: var(--primary); }
         .type-actions { width: 100%; display: flex; flex-direction: column; gap: 8px; }
 
-        .search-box-wrapper { width: 100%; margin-bottom: 8px; box-sizing: border-box; }
+        .search-box-wrapper { width: 100%; margin-bottom: 8px; box-sizing: border-box; flex-shrink: 0; }
         .search-input { width: 100%; padding: 10px 14px; font-size: 14px; background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; outline: none; color: var(--text-color); box-sizing: border-box; transition: border-color 0.2s; font-family: "Noto Sans JP", sans-serif;}
         .search-input:focus { border-color: var(--primary); }
 
@@ -557,7 +561,7 @@
     let db = JSON.parse(localStorage.getItem('jlpt_kanji_db')) || {
         "N3_Mondai_Demo": [
             { kanji: "頑丈", kana: "がんじょう", meaning: "Chắc chắn, cứng cáp, khỏe mạnh", exampleJp: "この棚は頑丈に作られている。", exampleVi: "Cái kệ này được làm rất chắc chắn.", synonym: "", flipCount: 0, starred: false },
-            { kanji: "圧倒적", kana: "あっとうてき", meaning: "Một cách áp đảo, vượt trội", exampleJp: "圧倒的な強 sự được優勝した。", exampleVi: "Giành chiến thắng nhờ sức mạnh áp đảo.", synonym: "優勢", flipCount: 0, starred: false },
+            { kanji: "圧倒的", kana: "あっとうてき", meaning: "Một cách áp đảo, vượt trội", exampleJp: "圧倒的な強さで優勝した。", exampleVi: "Giành chiến thắng nhờ sức mạnh áp đảo.", synonym: "優勢", flipCount: 0, starred: false },
             { kanji: "示唆", kana: "しさ", meaning: "Ám thị, khơi gợi, gợi ý", exampleJp: "彼の発言は多くのことを示唆している。", exampleVi: "Phát ngôn của anh ấy gợi ý rất nhiều điều.", synonym: "", flipCount: 0, starred: false }
         ]
     };
@@ -570,6 +574,12 @@
         updateThemeToggleIcon();
         initSheetSelect(); 
         initColorPickers();
+        
+        // TỐI ƯU IPHONE: Buộc tính toán lại viewport kích thước thật khi xoay màn hình hoặc từ bên ngoài quay lại app
+        window.addEventListener('resize', () => {
+            document.body.style.height = `${window.innerHeight}px`;
+        });
+        document.body.style.height = `${window.innerHeight}px`;
     };
 
     // ĐÃ THÊM: Logic điều khiển, hiển thị và lưu trữ hệ thống chọn màu mới
@@ -838,6 +848,9 @@
             renderManagerList();
         }
         if(tabId === 'tab-typing') { updateTypingStatsUI(); setTimeout(() => document.getElementById('type-input').focus(), 150); }
+        
+        // TỐI ƯU IPHONE: Khi đổi tab, ép Safari đồng bộ lại chiều cao tránh hụt khu vực footer bên dưới
+        document.body.style.height = `${window.innerHeight}px`;
     }
 
     function updateFlashcard() {
@@ -898,6 +911,10 @@
         const keyword = encodeURIComponent(text);
         const webUrl = `https://mazii.net/vi-VN/search/word/ja/${keyword}`;
         const appUrl = `mazii://search/${keyword}`;
+        
+        // TỐI ƯU IPHONE: Ép chiều cao lại ngay trước khi gọi ứng dụng Mazii để giữ trạng thái view nguyên vẹn khi quay lại
+        document.body.style.height = `${window.innerHeight}px`;
+        
         if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
             const startTime = Date.now(); window.location.href = appUrl;
             setTimeout(() => { if (Date.now() - startTime < 800) { window.location.href = webUrl; } }, 500);
@@ -913,6 +930,9 @@
         const keyword = encodeURIComponent(kanjiText);
         const webUrl = `https://mazii.net/vi-VN/search/word/ja/${keyword}`;
         const appUrl = `mazii://search/${keyword}`;
+        
+        document.body.style.height = `${window.innerHeight}px`;
+        
         if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
             const startTime = Date.now(); window.location.href = appUrl;
             setTimeout(() => { if (Date.now() - startTime < 800) { window.location.href = webUrl; } }, 500);
@@ -991,11 +1011,15 @@
         if (isOfflineMode) { alert("Đang ở chế độ Offline 📴."); return; }
         if(!text) return;
         try { window.speechSynthesis.cancel(); } catch(err) { }
+        
+        // KIỂM TRA & TỐI ƯU IPHONE: Lọc bỏ toàn bộ thẻ html <mark> trước khi đưa vào hàng đợi giọng đọc của Siri
         const cleanText = text.replace(/<[^>]*>/g, ''); 
         currentUtterance = new SpeechSynthesisUtterance(cleanText); 
         currentUtterance.lang = 'ja-JP'; currentUtterance.rate = 0.95; 
+        
         if (window.speechSynthesis.getVoices) {
             const voices = window.speechSynthesis.getVoices();
+            // TỐI ƯU GHI ÂM TỰ NHIÊN: Lọc tìm kiếm engine âm thanh Siri giọng nữ hoặc Bản Premium cao cấp tích hợp trên iOS
             let premiumVoice = voices.find(v => v.lang.startsWith('ja') && v.name.toLowerCase().includes('siri')) ||
                                voices.find(v => v.lang.startsWith('ja') && v.name.toLowerCase().includes('premium')) ||
                                voices.find(v => v.lang.startsWith('ja'));
@@ -1124,6 +1148,7 @@
         
         if (keyword) {
             for (const sheetName in db) {
+                if (sheetName === '_amHanViol') continue;
                 if (sheetName === '_amHanViet') continue;
                 const fullList = db[sheetName] || [];
                 
