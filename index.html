@@ -101,6 +101,7 @@
         }
         #theme-toggle { right: 0; color: #F7C64E; }
         #offline-toggle { right: 38px; font-size: 19px;}
+        #color-customizer { right: 76px; font-size: 19px; }
 
         .container { 
             width: 100%; 
@@ -262,12 +263,31 @@
         
         .modal-action-btn { background-color: transparent; border: 1.5px solid var(--primary); color: var(--primary); padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; margin-top: 12px; transition: all 0.2s; }
         .modal-action-btn:hover { background-color: var(--primary); color: white; }
+
+        /* THÊM TÙY CHỈNH Ô CHỌN MÀU CHO ĐỒNG BỘ */
+        .custom-color-picker {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 38px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: transparent;
+            cursor: pointer;
+            padding: 2px;
+            box-sizing: border-box;
+        }
+        .custom-color-picker::-webkit-color-swatch-wrapper { padding: 0; }
+        .custom-color-picker::-webkit-color-swatch { border: none; border-radius: 6px; }
+        .custom-color-picker::-moz-color-swatch { border: none; border-radius: 6px; }
     </style>
 </head>
 <body>
 
 <div class="header-row">
     <h1 class="title">JLPT N3 🌸<br><span>🌸 bé Tràm 🌸</span></h1>
+    <button id="color-customizer" class="theme-toggle-btn" onclick="openColorCustomizer()" title="Tùy chỉnh màu giao diện">🎨</button>
     <button id="offline-toggle" class="theme-toggle-btn" onclick="toggleOffline()" title="Bật/Tắt chế độ Offline">📶</button>
     <button id="theme-toggle" class="theme-toggle-btn" onclick="toggleTheme()" title="Sáng/Tối">☀️</button>
 </div>
@@ -398,7 +418,7 @@
     <!-- TAB DANH SÁCH -->
     <div id="tab-manager" class="tab-content" style="display: none;">
         <div class="search-box-wrapper">
-            <input type="text" id="vocab-search-input" class="search-input" placeholder="🔍 Nhập Kanji, Hán Việt hoặc Ý nghĩa để tra từ..." oninput="filterManagerList()">
+            <input type="text" id="vocab-search-input" class="search-input" placeholder="🔍 Nhập Kanji, Hán Việt hoặc Ý nghĩa để tra từ toàn bộ..." oninput="filterManagerList()">
         </div>
 
         <h3 id="manager-title" style="margin:2px 0 6px 0; font-size:14px; color:var(--primary);">Danh sách</h3>
@@ -406,7 +426,7 @@
             <table class="vocab-table">
                 <thead>
                     <tr>
-                        <th>Dòng</th>
+                        <th>STT</th>
                         <th>⭐</th>
                         <th>👁️</th>
                         <th>Từ vựng</th>
@@ -459,6 +479,47 @@
     </div>
 </div>
 
+<!-- ĐÃ THÊM: Giao diện Modal tùy chỉnh màu sắc chi tiết -->
+<div id="color-customizer-modal" class="modal-overlay" onclick="closeColorCustomizer()">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 400px; padding: 30px 24px;">
+        <span class="modal-close" onclick="closeColorCustomizer()">&times;</span>
+        <h3 style="margin-top: 0; margin-bottom: 6px; color: var(--primary); font-size: 22px;">Tùy chỉnh bảng màu</h3>
+        <p id="customizer-subtitle" style="margin: 0 0 24px 0; font-size: 13px; color: var(--text-muted);">Đang sửa cấu hình giao diện: TỐI (Dark)</p>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; text-align: left; margin-bottom: 24px;">
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+                <label style="font-size: 13px; font-weight: 600; color: var(--text-color);">Màu Nền:</label>
+                <input type="color" class="custom-color-picker" data-var="--bg-color">
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+                <label style="font-size: 13px; font-weight: 600; color: var(--text-color);">Nền Thẻ Card:</label>
+                <input type="color" class="custom-color-picker" data-var="--card-bg">
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+                <label style="font-size: 13px; font-weight: 600; color: var(--text-color);">Màu Chủ Đạo:</label>
+                <input type="color" class="custom-color-picker" data-var="--primary">
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+                <label style="font-size: 13px; font-weight: 600; color: var(--text-color);">Màu Phụ:</label>
+                <input type="color" class="custom-color-picker" data-var="--secondary">
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+                <label style="font-size: 13px; font-weight: 600; color: var(--text-color);">Điểm Nhấn:</label>
+                <input type="color" class="custom-color-picker" data-var="--accent">
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+                <label style="font-size: 13px; font-weight: 600; color: var(--text-color);">Màu Chữ:</label>
+                <input type="color" class="custom-color-picker" data-var="--text-color">
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 12px;">
+            <button class="mode-btn" style="flex: 1; padding: 12px; font-size: 14px; border-radius: 12px; color: var(--text-color);" onclick="resetCustomColors()">Khôi phục chuẩn</button>
+            <button class="mode-btn active" style="flex: 1; padding: 12px; font-size: 14px; border-radius: 12px;" onclick="closeColorCustomizer()">Hoàn tất</button>
+        </div>
+    </div>
+</div>
+
 <script>
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
@@ -466,9 +527,11 @@
         });
     }
 
+    // ĐÃ CẬP NHẬT: Tự động nạp bảng màu tùy chỉnh cho chủ đề được chọn khi mở trang
     (function() {
         const savedTheme = localStorage.getItem('app_theme') || 'dark';
         document.documentElement.setAttribute('data-theme', savedTheme);
+        applySavedCustomColors(savedTheme);
     })();
 
     let isOfflineMode = false;
@@ -494,7 +557,7 @@
     let db = JSON.parse(localStorage.getItem('jlpt_kanji_db')) || {
         "N3_Mondai_Demo": [
             { kanji: "頑丈", kana: "がんじょう", meaning: "Chắc chắn, cứng cáp, khỏe mạnh", exampleJp: "この棚は頑丈に作られている。", exampleVi: "Cái kệ này được làm rất chắc chắn.", synonym: "", flipCount: 0, starred: false },
-            { kanji: "圧倒적", kana: "あっとうてき", meaning: "Một cách áp đảo, vượt trội", exampleJp: "圧倒的な強 sựで優勝した。", exampleVi: "Giành chiến thắng nhờ sức mạnh áp đảo.", synonym: "優勢", flipCount: 0, starred: false },
+            { kanji: "圧倒적", kana: "あっとうてき", meaning: "Một cách áp đảo, vượt trội", exampleJp: "圧倒的な強 sự được優勝した。", exampleVi: "Giành chiến thắng nhờ sức mạnh áp đảo.", synonym: "優勢", flipCount: 0, starred: false },
             { kanji: "示唆", kana: "しさ", meaning: "Ám thị, khơi gợi, gợi ý", exampleJp: "彼の発言は多くのことを示唆している。", exampleVi: "Phát ngôn của anh ấy gợi ý rất nhiều điều.", synonym: "", flipCount: 0, starred: false }
         ]
     };
@@ -506,7 +569,106 @@
     window.onload = () => { 
         updateThemeToggleIcon();
         initSheetSelect(); 
+        initColorPickers();
     };
+
+    // ĐÃ THÊM: Logic điều khiển, hiển thị và lưu trữ hệ thống chọn màu mới
+    function openColorCustomizer() {
+        const theme = document.documentElement.getAttribute('data-theme');
+        document.getElementById('customizer-subtitle').innerText = `Đang sửa cấu hình giao diện: ${theme === 'light' ? 'SÁNG (Light)' : 'TỐI (Dark)'}`;
+        
+        const variables = ['--bg-color', '--card-bg', '--primary', '--secondary', '--accent', '--text-color'];
+        variables.forEach(v => {
+            const computedValue = getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+            const hexValue = rgbToHex(computedValue) || computedValue;
+            const picker = document.querySelector(`.custom-color-picker[data-var="${v}"]`);
+            if (picker) picker.value = hexValue;
+        });
+
+        document.getElementById('color-customizer-modal').style.display = 'flex';
+    }
+
+    function closeColorCustomizer() {
+        document.getElementById('color-customizer-modal').style.display = 'none';
+    }
+
+    function initColorPickers() {
+        const pickers = document.querySelectorAll('.custom-color-picker');
+        pickers.forEach(picker => {
+            picker.addEventListener('input', (e) => {
+                const variable = e.target.getAttribute('data-var');
+                const value = e.target.value;
+                document.documentElement.style.setProperty(variable, value);
+                
+                // Đồng bộ độ đục cho highlight dựa theo mã màu chủ đạo vừa chọn
+                if (variable === '--primary') {
+                    document.documentElement.style.setProperty('--highlight-text', value);
+                    document.documentElement.style.setProperty('--highlight-bg', hexToRgba(value, 0.23));
+                }
+                
+                const theme = document.documentElement.getAttribute('data-theme');
+                let savedColors = localStorage.getItem('custom_colors_' + theme);
+                savedColors = savedColors ? JSON.parse(savedColors) : {};
+                savedColors[variable] = value;
+                localStorage.setItem('custom_colors_' + theme, JSON.stringify(savedColors));
+            });
+        });
+    }
+
+    function resetCustomColors() {
+        const theme = document.documentElement.getAttribute('data-theme');
+        localStorage.removeItem('custom_colors_' + theme);
+        
+        const variables = ['--bg-color', '--card-bg', '--primary', '--secondary', '--accent', '--text-color', '--highlight-bg', '--highlight-text'];
+        variables.forEach(v => document.documentElement.style.removeProperty(v));
+        
+        // Cập nhật lại giá trị hiển thị trên các ô chọn màu
+        const checkVars = ['--bg-color', '--card-bg', '--primary', '--secondary', '--accent', '--text-color'];
+        checkVars.forEach(v => {
+            const computedValue = getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+            const hexValue = rgbToHex(computedValue) || computedValue;
+            const picker = document.querySelector(`.custom-color-picker[data-var="${v}"]`);
+            if (picker) picker.value = hexValue;
+        });
+    }
+
+    function applySavedCustomColors(theme) {
+        const savedColors = localStorage.getItem('custom_colors_' + theme);
+        const variables = ['--bg-color', '--card-bg', '--primary', '--secondary', '--accent', '--text-color', '--highlight-bg', '--highlight-text'];
+        
+        // Xóa thuộc tính cũ để tránh bị đè màu giữa 2 chế độ
+        variables.forEach(v => document.documentElement.style.removeProperty(v));
+
+        if (savedColors) {
+            const colors = JSON.parse(savedColors);
+            for (const [variable, value] of Object.entries(colors)) {
+                document.documentElement.style.setProperty(variable, value);
+                if (variable === '--primary') {
+                    document.documentElement.style.setProperty('--highlight-text', value);
+                    document.documentElement.style.setProperty('--highlight-bg', hexToRgba(value, 0.23));
+                }
+            }
+        }
+    }
+
+    function rgbToHex(rgbStr) {
+        if (!rgbStr || !rgbStr.startsWith('rgb')) return rgbStr;
+        const match = rgbStr.match(/\d+/g);
+        if (!match) return rgbStr;
+        const r = parseInt(match[0]), g = parseInt(match[1]), b = parseInt(match[2]);
+        return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
+    }
+
+    function hexToRgba(hex, alpha) {
+        let c;
+        if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
+            c= hex.substring(1).split('');
+            if(c.length== 3){ c= [c[0], c[0], c[1], c[1], c[2], c[2]]; }
+            c= '0x'+c.join('');
+            return 'rgba('+[(c>>16)&255, (c>>8)&255, c&255].join(',')+','+alpha+')';
+        }
+        return hex;
+    }
 
     function toggleTheme() {
         const currentTheme = document.documentElement.getAttribute('data-theme');
@@ -514,6 +676,9 @@
         document.documentElement.setAttribute('data-theme', newTheme);
         localStorage.setItem('app_theme', newTheme);
         updateThemeToggleIcon();
+        
+        // Nạp riêng bảng màu tùy chỉnh đã lưu của chế độ mới chọn
+        applySavedCustomColors(newTheme);
     }
 
     function updateThemeToggleIcon() {
@@ -558,8 +723,8 @@
     function highlightKeyword(sentence, keyword) {
         if (!sentence || !keyword) return sentence || '';
         const escapedKeyword = keyword.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-        const regex = new RegExp(escapedKeyword, 'g');
-        return sentence.replace(regex, `<mark class="highlight-word">${keyword}</mark>`);
+        const regex = new RegExp(`(${escapedKeyword})`, 'gi');
+        return sentence.replace(regex, `<mark class="highlight-word">$1</mark>`);
     }
 
     function initSheetSelect() {
@@ -955,41 +1120,82 @@
         const keyword = document.getElementById('vocab-search-input').value.trim().toLowerCase();
         const tbody = document.getElementById('vocab-list-tbody'); tbody.innerHTML = '';
         const isOnlyBookmarked = document.getElementById('only-bookmarked').checked;
-        const fullList = db[currentSheetName] || [];
-        const baseDataList = isOnlyBookmarked ? fullList.filter(w => w.starred) : fullList; 
+        const seenResults = new Set();
         
-        baseDataList.forEach((w, index) => {
-            const kj = (w.kanji || '').toLowerCase(); const hv = (w.hanviet || autoTranslateHanViet(w.kanji)).toLowerCase();
-            const mn = (w.meaning || '').toLowerCase(); const kn = (w.kana || '').toLowerCase();
-            if (keyword && !kj.includes(keyword) && !hv.includes(keyword) && !mn.includes(keyword) && !kn.includes(keyword)) return; 
-
-            let tr = document.createElement('tr');
-            const originalIndexInSheet = fullList.findIndex(orig => orig.kanji === w.kanji);
-            tr.onclick = () => showKanjiPopup(originalIndexInSheet !== -1 ? originalIndexInSheet : index);
-            tr.innerHTML = `
-                <td>${originalIndexInSheet !== -1 ? originalIndexInSheet + 2 : index + 2}</td>
-                <td onclick="event.stopPropagation(); toggleStarFromList(${originalIndexInSheet !== -1 ? originalIndexInSheet : index})">${w.starred ? '⭐' : '☆'}</td>
-                <td>${w.flipCount || 0}</td>
-                <td style="font-weight: bold; color: var(--primary); text-decoration: underline dotted;">${w.kanji}</td>
-                <td style="color: var(--accent); font-weight: bold; text-transform: uppercase;">${w.hanviet || autoTranslateHanViet(w.kanji)}</td>
-                <td>${w.kana || '---'}</td>
-                <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis;">${w.meaning}</td>`;
-            tbody.appendChild(tr);
-        });
-    }
-
-    function toggleStarFromList(index) {
-        const listData = db[currentSheetName] || [];
-        if (listData[index]) {
-            listData[index].starred = !listData[index].starred; saveToLocalStorage();
-            const full = db[currentSheetName] || [];
-            currentList = document.getElementById('only-bookmarked').checked ? full.filter(w => w.starred) : [...full];
-            filterManagerList(); updateFlashcard();
+        if (keyword) {
+            for (const sheetName in db) {
+                if (sheetName === '_amHanViet') continue;
+                const fullList = db[sheetName] || [];
+                
+                fullList.forEach((w, index) => {
+                    if (isOnlyBookmarked && !w.starred) return;
+                    
+                    const kj = (w.kanji || '').toLowerCase(); 
+                    const hv = (w.hanviet || autoTranslateHanViet(w.kanji)).toLowerCase();
+                    const mn = (w.meaning || '').toLowerCase(); 
+                    const kn = (w.kana || '').toLowerCase();
+                    
+                    if (!kj.includes(keyword) && !hv.includes(keyword) && !mn.includes(keyword) && !kn.includes(keyword)) return;
+                    
+                    const uniqueKey = `${w.kanji.trim()}|${w.kana.trim()}|${w.meaning.trim()}`;
+                    if (seenResults.has(uniqueKey)) return;
+                    seenResults.add(uniqueKey);
+                    
+                    let tr = document.createElement('tr');
+                    tr.onclick = () => showKanjiPopup(index, sheetName);
+                    // ĐA SỬA: Thay đổi white-space thành nowrap tại cột đầu tiên để không bị vỡ dòng mục STT
+                    tr.innerHTML = `
+                        <td style="font-size: 11px; white-space: nowrap; max-width: 100px; color: var(--text-muted); line-height: 1.2;">
+                            ${sheetName}<br><b>${index + 2}</b>
+                        </td>
+                        <td onclick="event.stopPropagation(); toggleStarFromList(${index}, '${sheetName}')">${w.starred ? '⭐' : '☆'}</td>
+                        <td>${w.flipCount || 0}</td>
+                        <td style="font-weight: bold; color: var(--primary); text-decoration: underline dotted;">${highlightKeyword(w.kanji, keyword)}</td>
+                        <td style="color: var(--accent); font-weight: bold; text-transform: uppercase;">${highlightKeyword(w.hanviet || autoTranslateHanViet(w.kanji), keyword)}</td>
+                        <td>${highlightKeyword(w.kana || '---', keyword)}</td>
+                        <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis;">${highlightKeyword(w.meaning, keyword)}</td>`;
+                    tbody.appendChild(tr);
+                });
+            }
+        } else {
+            const fullList = db[currentSheetName] || [];
+            const baseDataList = isOnlyBookmarked ? fullList.filter(w => w.starred) : fullList; 
+            
+            baseDataList.forEach((w, index) => {
+                let tr = document.createElement('tr');
+                const originalIndexInSheet = fullList.findIndex(orig => orig.kanji === w.kanji);
+                const idx = originalIndexInSheet !== -1 ? originalIndexInSheet : index;
+                tr.onclick = () => showKanjiPopup(idx, currentSheetName);
+                tr.innerHTML = `
+                    <td>${idx + 2}</td>
+                    <td onclick="event.stopPropagation(); toggleStarFromList(${idx}, '${currentSheetName}')">${w.starred ? '⭐' : '☆'}</td>
+                    <td>${w.flipCount || 0}</td>
+                    <td style="font-weight: bold; color: var(--primary); text-decoration: underline dotted;">${w.kanji}</td>
+                    <td style="color: var(--accent); font-weight: bold; text-transform: uppercase;">${w.hanviet || autoTranslateHanViet(w.kanji)}</td>
+                    <td>${w.kana || '---'}</td>
+                    <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis;">${w.meaning}</td>`;
+                tbody.appendChild(tr);
+            });
         }
     }
 
-    function showKanjiPopup(index) {
-        const listData = db[currentSheetName] || []; const word = listData[index]; if (!word) return;
+    function toggleStarFromList(index, sheetName) {
+        const targetSheet = sheetName || currentSheetName;
+        const listData = db[targetSheet] || [];
+        if (listData[index]) {
+            listData[index].starred = !listData[index].starred; saveToLocalStorage();
+            if (targetSheet === currentSheetName) {
+                const full = db[currentSheetName] || [];
+                currentList = document.getElementById('only-bookmarked').checked ? full.filter(w => w.starred) : [...full];
+                updateFlashcard();
+            }
+            filterManagerList();
+        }
+    }
+
+    function showKanjiPopup(index, sheetName) {
+        const targetSheet = sheetName || currentSheetName;
+        const listData = db[targetSheet] || []; const word = listData[index]; if (!word) return;
         document.getElementById('modal-kanji-text').innerText = word.kanji;
         document.getElementById('modal-hanviet-text').innerText = word.hanviet || autoTranslateHanViet(word.kanji);
         document.getElementById('modal-kana-text').innerText = word.kana ? `[ ${word.kana} ]` : '';
