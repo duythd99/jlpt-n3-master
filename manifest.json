@@ -2,7 +2,7 @@
   "name": "JLPT N3 Master Application",
   "short_name": "JLPT N3",
   "description": "Ứng dụng học từ vựng JLPT N3 tối ưu hóa cho di động",
-  "start_url": "index.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffe6ea",
   "theme_color": "#d63384",
