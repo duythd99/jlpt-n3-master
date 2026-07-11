@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Flashcard JLPT N3 🌸</title>
     
-    <!-- ĐÃ SỬA: Thay class bằng rel để nhận diện PWA và Icon -->
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.png">
     
@@ -21,6 +20,10 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         /* BẢNG MÀU CHUẨN ĐẬM ROSE & PLUM PALETTE THEO ẢNH */
+        html {
+            height: 100dvh;
+        }
+
         :root[data-theme="light"] {
             --bg-color: #FFF2F5;
             --card-bg: #FFFFFF;
@@ -64,12 +67,12 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            padding: 0 16px;
+            padding: 0 12px;
             display: flex;
             flex-direction: column;
             align-items: center;
             height: 100vh;
-            height: 100dvh; /* TỐI ƯU IPHONE: Sửa lỗi hiển thị khi quay về từ app khác / thay đổi chiều cao thanh công cụ */
+            height: 100dvh; /* TỐI ƯU IPHONE */
             box-sizing: border-box;
             transition: background-color 0.3s, color 0.3s;
             -webkit-tap-highlight-color: transparent;
@@ -84,18 +87,18 @@
             align-items: center;
             width: 100%;
             max-width: 430px;
-            margin-bottom: 12px;
-            margin-top: calc(env(safe-area-inset-top) + 4px);
+            margin-bottom: 6px;
+            margin-top: calc(env(safe-area-inset-top) + 2px);
             flex-shrink: 0;
         }
-        h1.title { font-size: 24px; margin: 0; color: var(--primary); font-weight: bold; text-align: center; line-height: 1.2; }
-        h1.title span { font-size: 16px; display: block; margin-top: 4px; }
+        h1.title { font-size: 20px; margin: 0; color: var(--primary); font-weight: bold; text-align: center; line-height: 1.2; }
+        h1.title span { font-size: 14px; display: block; margin-top: 2px; }
         
         .theme-toggle-btn {
             position: absolute;
             background: transparent;
             border: none;
-            font-size: 20px;
+            font-size: 18px;
             cursor: pointer;
             padding: 4px;
             line-height: 1;
@@ -103,8 +106,8 @@
             transition: color 0.2s;
         }
         #theme-toggle { right: 0; color: #F7C64E; }
-        #offline-toggle { right: 38px; font-size: 19px;}
-        #color-customizer { right: 76px; font-size: 19px; }
+        #offline-toggle { right: 34px; font-size: 17px;}
+        #color-customizer { right: 68px; font-size: 17px; }
 
         .container { 
             width: 100%; 
@@ -112,8 +115,8 @@
             flex: 1;
             display: flex; 
             flex-direction: column; 
-            gap: 12px; 
-            margin-bottom: calc(env(safe-area-inset-bottom) + 10px);
+            gap: 6px; 
+            margin-bottom: calc(env(safe-area-inset-bottom) + 4px);
             overflow: hidden;
         }
 
@@ -121,16 +124,16 @@
             display: flex; 
             align-items: center; 
             justify-content: space-between; 
-            gap: 10px; 
+            gap: 8px; 
             background-color: var(--card-bg);
-            padding: 10px 14px;
-            border-radius: 14px;
+            padding: 6px 12px;
+            border-radius: 12px;
             border: 1px solid var(--border-color);
             flex-shrink: 0;
         }
         .select-wrapper { display: flex; align-items: center; gap: 6px; flex: 1; }
-        .select-wrapper label { font-size: 13px; font-weight: bold; color: var(--text-muted); white-space: nowrap; }
-        select { width: 100%; background-color: transparent; color: var(--text-color); border: none; padding: 4px 0; font-size: 14px; outline: none; font-weight: 600; cursor: pointer; }
+        .select-wrapper label { font-size: 12px; font-weight: bold; color: var(--text-muted); white-space: nowrap; }
+        select { width: 100%; background-color: transparent; color: var(--text-color); border: none; padding: 2px 0; font-size: 13px; outline: none; font-weight: 600; cursor: pointer; }
         select option { background-color: var(--option-bg); color: var(--option-text); }
 
         .file-input-label {
@@ -139,10 +142,10 @@
             background-color: var(--primary);
             color: white;
             border: none;
-            padding: 6px 12px;
-            border-radius: 8px;
+            padding: 4px 10px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
             white-space: nowrap;
             transition: all 0.2s;
@@ -150,46 +153,59 @@
         .file-input-label:hover { opacity: 0.9; }
         #excel-file { display: none; }
 
-        .bookmark-filter { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; color: var(--text-muted); margin: -2px 0; cursor: pointer; font-weight: 500; flex-shrink: 0; }
+        .filter-controls-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            box-sizing: border-box;
+            flex-shrink: 0;
+            padding: 0 4px;
+        }
+        .bookmark-filter { display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 12px; color: var(--text-muted); margin: 0; cursor: pointer; font-weight: 500; }
+        .global-level-wrapper { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-muted); font-weight: 500; }
+        
+        /* TỐI ƯU: Đảm bảo chữ Mức độ luôn nằm trên 1 dòng */
+        .global-level-wrapper label { font-weight: bold; color: var(--text-muted); white-space: nowrap; }
+        .global-level-select { background-color: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color); padding: 2px 6px; border-radius: 6px; font-size: 12px; font-weight: 600; outline: none; cursor: pointer; }
 
-        .mode-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; flex-shrink: 0; }
-        .mode-btn { background-color: transparent; color: var(--text-muted); border: 1.5px solid var(--border-color); padding: 12px 2px; border-radius: 12px; font-size: 13px; cursor: pointer; font-weight: 600; text-align: center; transition: all 0.2s;}
+        .mode-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; flex-shrink: 0; }
+        .mode-btn { background-color: transparent; color: var(--text-muted); border: 1.5px solid var(--border-color); padding: 8px 2px; border-radius: 10px; font-size: 12px; cursor: pointer; font-weight: 600; text-align: center; transition: all 0.2s;}
         .mode-btn.active { background-color: var(--primary); color: white; border-color: var(--primary); }
-        :root[data-theme="dark"] .mode-btn.active { background-color: var(--primary); color: white; border-color: var(--primary); }
 
         .tab-content { display: none; flex-direction: column; width: 100%; flex: 1; overflow: hidden; }
 
-        /* CARD STYLE */
-        .flashcard { width: 100%; height: 320px; perspective: 1000px; margin: 4px 0; cursor: pointer; flex-shrink: 0; }
+        /* TỐI ƯU CARD STYLE: Giảm chiều cao từ 320px xuống 260px để vừa vặn màn hình iPhone không cần cuộn */
+        .flashcard { width: 100%; height: 260px; perspective: 1000px; margin: 2px 0; cursor: pointer; flex-shrink: 0; }
         .flashcard-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.4s; transform-style: preserve-3d; -webkit-transform-style: preserve-3d; }
         .flashcard.flipped .flashcard-inner { transform: rotateY(180deg); -webkit-transform: rotateY(180deg); }
         
-        .flashcard-front, .flashcard-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 20px; padding: 25px 20px; box-sizing: border-box; background-color: var(--card-bg); border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        .flashcard-front, .flashcard-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 16px; padding: 15px 15px; box-sizing: border-box; background-color: var(--card-bg); border: 1.5px solid var(--border-color); box-shadow: 0 4px 12px rgba(0,0,0,0.03); transition: border-color 0.25s, background-color 0.25s; }
         .flashcard-front { display: flex; flex-direction: column; align-items: center; justify-content: center; transform: rotateY(0deg); -webkit-transform: rotateY(0deg); }
         .flashcard-back { color: var(--text-color); display: flex; flex-direction: column; align-items: center; justify-content: space-around; text-align: center; transform: rotateY(180deg); -webkit-transform: rotateY(180deg); overflow-y: auto; }
         
         .flashcard.flipped .flashcard-front { visibility: hidden; }
         .flashcard:not(.flipped) .flashcard-back { visibility: hidden; }
 
-        .card-icon-top { position: absolute; top: 15px; font-size: 18px; cursor: pointer; z-index: 10; }
-        .star-icon { left: 15px; }
-        .eye-icon { right: 15px; font-size: 12px; color: var(--text-muted); font-weight: 500; }
+        .card-icon-top { position: absolute; top: 12px; font-size: 16px; cursor: pointer; z-index: 10; }
+        .star-icon { left: 12px; }
+        .eye-icon { right: 12px; font-size: 11px; color: var(--text-muted); font-weight: 500; }
 
-        .word-main { font-size: 52px; font-weight: bold; margin: 0; color: var(--text-color); font-family: "Noto Sans JP", sans-serif; }
-        .audio-btn { background: rgba(222, 84, 138, 0.2); border: none; color: var(--primary); border-radius: 50%; width: 32px; height: 32px; font-size: 13px; cursor: pointer; margin-left: 8px; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; }
+        .word-main { font-size: 44px; font-weight: bold; margin: 0; color: var(--text-color); font-family: "Noto Sans JP", sans-serif; }
+        .audio-btn { background: rgba(222, 84, 138, 0.2); border: none; color: var(--primary); border-radius: 50%; width: 28px; height: 28px; font-size: 12px; cursor: pointer; margin-left: 6px; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; }
 
-        .fb-container-top { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 100%; }
-        .fb-hanviet { font-size: 24px; color: var(--accent); font-weight: bold; text-transform: uppercase; letter-spacing: 1.5px; margin: 0; }
-        .fb-kana { font-size: 18px; color: var(--text-muted); font-weight: 500; margin: 0; display: flex; align-items: center; justify-content: center; }
-        .fb-mean { font-size: 21px; font-weight: bold; margin: 4px 0; color: var(--text-color); }
+        .fb-container-top { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 100%; }
+        .fb-hanviet { font-size: 21px; color: var(--accent); font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin: 0; }
+        .fb-kana { font-size: 15px; color: var(--text-muted); font-weight: 500; margin: 0; display: flex; align-items: center; justify-content: center; }
+        .fb-mean { font-size: 18px; font-weight: bold; margin: 2px 0; color: var(--text-color); }
 
         .blur-box { filter: blur(6px); background: var(--blur-bg); border-radius: 6px; padding: 2px 10px; cursor: pointer; color: transparent; display: inline-block; transition: filter 0.25s; user-select: none; }
         .blur-box.revealed { filter: none; background: transparent; color: inherit; user-select: text; }
 
         mark.highlight-word { background-color: var(--highlight-bg); color: var(--highlight-text); font-weight: bold; padding: 0 4px; border-radius: 4px; }
 
-        .nav-buttons { display: flex; justify-content: space-between; align-items: stretch; width: 100%; gap: 10px; margin-top: 4px; flex-shrink: 0; }
-        .nav-btn { padding: 14px 4px; border-radius: 16px; font-weight: bold; cursor: pointer; font-size: 15px; border: 1.5px solid transparent; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+        .nav-buttons { display: flex; justify-content: space-between; align-items: stretch; width: 100%; gap: 8px; margin-top: 2px; flex-shrink: 0; }
+        .nav-btn { padding: 10px 4px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 14px; border: 1.5px solid transparent; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
         
         .nav-btn.btn-prev { flex: 1.1; background-color: var(--primary); color: white; border-color: var(--primary); }
         .nav-btn.btn-prev:active { opacity: 0.8; }
@@ -198,83 +214,67 @@
         
         .nav-btn.btn-next { flex: 1.1; background-color: var(--primary); color: white; }
 
-        .progress-container { width: 100%; display: flex; flex-direction: column; gap: 4px; margin: 2px 0; flex-shrink: 0; }
-        .progress-bar-bg { width: 100%; height: 6px; background-color: var(--border-color); border-radius: 3px; overflow: hidden; }
+        .progress-container { width: 100%; display: flex; flex-direction: column; gap: 2px; margin: 2px 0; flex-shrink: 0; }
+        .progress-bar-bg { width: 100%; height: 5px; background-color: var(--border-color); border-radius: 3px; overflow: hidden; }
         .progress-bar-fill { height: 100%; width: 0%; background-color: var(--primary); transition: width 0.3s ease; }
-        .progress-info { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: var(--text-muted); }
+        .progress-info { display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; color: var(--text-muted); }
 
-        .difficulty-panel { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; width: 100%; margin: 8px 0; flex-shrink: 0; }
-        .diff-btn { border: none; padding: 10px 4px; border-radius: 12px; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; transition: transform 0.1s, opacity 0.2s; }
-        .diff-btn:active { transform: scale(0.96); }
-        
-        .diff-icon { font-size: 16px; margin-bottom: 2px; }
+        /* ẨN BẢNG PHÂN LOẠI CŨ ĐỂ KHÔNG TỐN DIỆN TÍCH MÀN HÌNH IPHONE */
+        .difficulty-panel { display: none !important; }
 
-        .diff-again { background-color: var(--error); color: white; }
-        .diff-again:hover { opacity: 0.9; }
-        
-        .diff-hard { background-color: var(--warning); color: white; }
-        .diff-hard:hover { opacity: 0.9; }
-        
-        .diff-good { background-color: var(--success); color: white; }
-        .diff-good:hover { opacity: 0.9; }
-        
-        .diff-easy { background-color: var(--secondary); color: white; }
-        .diff-easy:hover { opacity: 0.9; }
-
-        .diff-btn span:last-child { font-size: 11px; font-weight: normal; opacity: 0.9; color: inherit; }
-
-        footer { display: flex; justify-content: center; gap: 15px; font-size: 13px; margin-top: auto; margin-bottom: 4px; padding-top: 8px; flex-shrink: 0; }
+        footer { display: flex; justify-content: center; gap: 15px; font-size: 12px; margin-top: auto; margin-bottom: 2px; padding-top: 4px; flex-shrink: 0; }
         footer a { color: var(--primary); text-decoration: none; font-weight: bold; cursor: pointer; }
 
         /* GIAO DIỆN MỤC GÕ TỪ */
-        .quiz-stats-board { display: flex; justify-content: space-around; background-color: var(--card-bg); padding: 10px; border-radius: 12px; border: 1px solid var(--border-color); font-size: 13px; font-weight: bold; margin-bottom: 5px; flex-shrink: 0; }
+        .quiz-stats-board { display: flex; justify-content: space-around; background-color: var(--card-bg); padding: 8px; border-radius: 10px; border: 1px solid var(--border-color); font-size: 12px; font-weight: bold; margin-bottom: 4px; flex-shrink: 0; }
         .stat-item { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-        .stat-label { color: var(--text-muted); font-size: 11px; text-transform: uppercase; }
-        .stat-val.correct { color: var(--success); font-size: 15px; }
-        .stat-val.wrong { color: var(--error); font-size: 15px; }
-        .stat-val.total { color: var(--text-color); font-size: 15px; }
+        .stat-label { color: var(--text-muted); font-size: 10px; text-transform: uppercase; }
+        .stat-val.correct { color: var(--success); font-size: 14px; }
+        .stat-val.wrong { color: var(--error); font-size: 14px; }
+        .stat-val.total { color: var(--text-color); font-size: 14px; }
 
-        .quiz-card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 20px; padding: 30px 20px; display: flex; flex-direction: column; align-items: center; gap: 16px; flex: 1; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
-        .quiz-question { font-size: 56px; font-weight: bold; text-align: center; color: var(--primary); margin: 0; font-family: "Klee One", "UD Digi Kyokasho N-R", serif; }
-        .quiz-hint-wrapper { text-align: center; font-size: 14px; color: var(--text-muted); }
-        .quiz-hint-text { font-weight: 600; color: var(--accent); font-size: 16px; margin-top: 4px; display: block; }
+        .quiz-card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px 15px; display: flex; flex-direction: column; align-items: center; gap: 12px; flex: 1; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
+        .quiz-question { font-size: 48px; font-weight: bold; text-align: center; color: var(--primary); margin: 0; font-family: "Klee One", "UD Digi Kyokasho N-R", serif; }
+        .quiz-hint-wrapper { text-align: center; font-size: 13px; color: var(--text-muted); }
+        .quiz-hint-text { font-weight: 600; color: var(--accent); font-size: 15px; margin-top: 2px; display: block; }
 
-        .game-input { width: 100%; padding: 16px; font-size: 16px; background-color: var(--bg-color); border: 2px solid var(--border-color); border-radius: 14px; outline: none; color: var(--text-color); box-sizing: border-box; text-align: center; font-weight: 600; transition: border-color 0.2s; font-family: "Noto Sans JP", sans-serif;}
+        .game-input { width: 100%; padding: 12px; font-size: 15px; background-color: var(--bg-color); border: 2px solid var(--border-color); border-radius: 12px; outline: none; color: var(--text-color); box-sizing: border-box; text-align: center; font-weight: 600; transition: border-color 0.2s; font-family: "Noto Sans JP", sans-serif;}
         .game-input:focus { border-color: var(--primary); }
-        .type-actions { width: 100%; display: flex; flex-direction: column; gap: 8px; }
+        .type-actions { width: 100%; display: flex; flex-direction: column; gap: 6px; }
 
-        .search-box-wrapper { width: 100%; margin-bottom: 8px; box-sizing: border-box; flex-shrink: 0; }
-        .search-input { width: 100%; padding: 10px 14px; font-size: 14px; background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; outline: none; color: var(--text-color); box-sizing: border-box; transition: border-color 0.2s; font-family: "Noto Sans JP", sans-serif;}
+        .search-box-wrapper { width: 100%; margin-bottom: 6px; box-sizing: border-box; flex-shrink: 0; }
+        .search-input { width: 100%; padding: 8px 12px; font-size: 13px; background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; outline: none; color: var(--text-color); box-sizing: border-box; transition: border-color 0.2s; font-family: "Noto Sans JP", sans-serif;}
         .search-input:focus { border-color: var(--primary); }
 
-        .vocab-table-wrapper { flex: 1; overflow-y: auto; overflow-x: auto; border: 1px solid var(--border-color); border-radius: 16px; background: var(--card-bg); -webkit-overflow-scrolling: touch; margin-bottom: 5px; }
-        .vocab-table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; white-space: nowrap; }
-        .vocab-table th, .vocab-table td { padding: 14px 12px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+        .vocab-table-wrapper { flex: 1; overflow-y: auto; overflow-x: auto; border: 1px solid var(--border-color); border-radius: 12px; background: var(--card-bg); -webkit-overflow-scrolling: touch; margin-bottom: 4px; }
+        .vocab-table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; white-space: nowrap; }
+        .vocab-table th, .vocab-table td { padding: 10px 8px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
         .vocab-table th { background: var(--primary); color: white; position: sticky; top: 0; z-index: 100; font-weight: 600; }
-        :root[data-theme="dark"] .vocab-table th { color: #FFFFFF; }
+        
+        /* ĐÃ CẬP NHẬT: Căn giữa cho cột STT ở xem danh sách */
+        .vocab-table th:first-child, .vocab-table td:first-child { text-align: center; }
 
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
-        .modal-content { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 24px; padding: 35px 24px 28px 24px; text-align: center; position: relative; width: 88%; max-width: 360px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 2011; }
-        .modal-close { position: absolute; top: 10px; right: 16px; font-size: 22px; cursor: pointer; color: var(--text-muted); }
+        .modal-content { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 20px; padding: 25px 20px; text-align: center; position: relative; width: 88%; max-width: 340px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 2011; }
+        .modal-close { position: absolute; top: 8px; right: 14px; font-size: 20px; cursor: pointer; color: var(--text-muted); }
         
-        .modal-kanji { font-size: 64px; font-weight: bold; color: var(--primary); font-family: "Klee One", "UD Digi Kyokasho N-R", serif; }
-        .modal-hanviet { margin-top: 8px; font-size: 16px; font-weight: bold; color: var(--accent); text-transform: uppercase; letter-spacing: 1.5px; margin: 0; }
-        .modal-kana { margin-top: 4px; font-size: 15px; color: var(--text-color); }
-        .modal-meaning { margin-top: 8px; font-size: 18px; font-weight: 600; }
-        .modal-divider { border: none; border-top: 1px dashed var(--border-color); margin: 16px 0; }
-        .modal-example-jp { font-size: 15px; color: var(--text-color); line-height: 1.4; margin-bottom: 6px; }
-        .modal-example-vi { font-size: 13px; color: var(--text-muted); line-height: 1.4; display: inline-block; }
+        .modal-kanji { font-size: 56px; font-weight: bold; color: var(--primary); font-family: "Klee One", "UD Digi Kyokasho N-R", serif; }
+        .modal-hanviet { margin-top: 4px; font-size: 15px; font-weight: bold; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin: 0; }
+        .modal-kana { margin-top: 2px; font-size: 14px; color: var(--text-color); }
+        .modal-meaning { margin-top: 6px; font-size: 16px; font-weight: 600; }
+        .modal-divider { border: none; border-top: 1px dashed var(--border-color); margin: 12px 0; }
+        .modal-example-jp { font-size: 14px; color: var(--text-color); line-height: 1.4; margin-bottom: 4px; }
+        .modal-example-vi { font-size: 12px; color: var(--text-muted); line-height: 1.4; display: inline-block; }
         
-        .modal-action-btn { background-color: transparent; border: 1.5px solid var(--primary); color: var(--primary); padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; margin-top: 12px; transition: all 0.2s; }
+        .modal-action-btn { background-color: transparent; border: 1.5px solid var(--primary); color: var(--primary); padding: 6px 12px; border-radius: 16px; font-size: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: all 0.2s; }
         .modal-action-btn:hover { background-color: var(--primary); color: white; }
 
-        /* THÊM TÙY CHỈNH Ô CHỌN MÀU CHO ĐỒNG BỘ */
         .custom-color-picker {
             -webkit-appearance: none;
             -moz-appearance: none;
             appearance: none;
             width: 100%;
-            height: 38px;
+            height: 34px;
             border: 1px solid var(--border-color);
             border-radius: 8px;
             background: transparent;
@@ -306,9 +306,21 @@
         <input type="file" id="excel-file" accept=".xlsx, .xls" onchange="handleExcelUpload(event)">
     </div>
 
-    <label class="bookmark-filter">
-        <input type="checkbox" id="only-bookmarked" onchange="toggleStarredFilter()"> ⭐ Từ cần chú ý
-    </label>
+    <div class="filter-controls-row">
+        <label class="bookmark-filter">
+            <input type="checkbox" id="only-bookmarked" onchange="toggleStarredFilter()"> ⭐ Từ cần chú ý
+        </label>
+        <div class="global-level-wrapper">
+            <label>Mức độ:</label>
+            <select id="global-level-filter" class="global-level-select" onchange="changeGlobalLevelFilter()">
+                <option value="all">Tất cả</option>
+                <option value="again">Học lại</option>
+                <option value="hard">Khó</option>
+                <option value="good">Tốt</option>
+                <option value="easy">Dễ</option>
+            </select>
+        </div>
+    </div>
 
     <div class="mode-buttons">
         <button class="mode-btn active" onclick="switchTab('tab-flashcard', this)">Flashcard</button>
@@ -340,13 +352,13 @@
                     
                     <div class="fb-mean" id="fc-meaning">-</div>
                     
-                    <div style="font-size: 14px; color: var(--primary); margin: 5px 0; display:none;" id="fc-same-box">
+                    <div style="font-size: 13px; color: var(--primary); margin: 4px 0; display:none;" id="fc-same-box">
                         Từ đồng nghĩa: <span class="blur-box" id="fc-same" onclick="revealBlur(event, this)"></span>
                     </div>
                     
-                    <div style="font-size:14px; border-top:1px dashed var(--border-color); padding-top:12px; width:100%; display: flex; flex-direction: column; align-items: center; gap: 8px;" id="fc-ex-box">
+                    <div style="font-size:13px; border-top:1px dashed var(--border-color); padding-top:8px; width:100%; display: flex; flex-direction: column; align-items: center; gap: 6px;" id="fc-ex-box">
                         <div style="display: flex; align-items: center; justify-content: center;">
-                            <span id="fc-ex-jp" style="font-style:italic; font-size:15px; color: var(--text-color); text-align: center;"></span>
+                            <span id="fc-ex-jp" style="font-style:italic; font-size:14px; color: var(--text-color); text-align: center;"></span>
                             <button class="audio-btn" onclick="speakCurrentExample(event)">🔊</button>
                         </div>
                         <span class="blur-box" id="fc-ex-vi" onclick="revealBlur(event, this)"></span>
@@ -371,11 +383,20 @@
             </div>
         </div>
 
+        <!-- ĐÃ CẬP NHẬT CHỨC NĂNG: Bấm trực tiếp vào đây bộ đếm sẽ hoạt động và chuyển sang thẻ tiếp theo -->
+        <div class="level-counters-row" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin: 4px 0; font-size: 11px; text-align: center; font-weight: bold; flex-shrink: 0;">
+            <div id="btn-filter-all" onclick="nextCard()" style="background: var(--card-bg); border: 1px solid var(--primary); border-radius: 8px; padding: 6px 2px; cursor: pointer; color: var(--text-color); transition: all 0.2s;">Tất cả<br><span id="count-all">0</span></div>
+            <div id="btn-filter-again" onclick="handleDifficulty('again', event)" style="background: var(--card-bg); border: 1px solid var(--error); border-radius: 8px; padding: 6px 2px; cursor: pointer; color: var(--error); transition: all 0.2s;">Học lại<br><span id="count-again">0</span></div>
+            <div id="btn-filter-hard" onclick="handleDifficulty('hard', event)" style="background: var(--card-bg); border: 1px solid var(--warning); border-radius: 8px; padding: 6px 2px; cursor: pointer; color: var(--warning); transition: all 0.2s;">Khó<br><span id="count-hard">0</span></div>
+            <div id="btn-filter-good" onclick="handleDifficulty('good', event)" style="background: var(--card-bg); border: 1px solid var(--success); border-radius: 8px; padding: 6px 2px; cursor: pointer; color: var(--success); transition: all 0.2s;">Tốt<br><span id="count-good">0</span></div>
+            <div id="btn-filter-easy" onclick="handleDifficulty('easy', event)" style="background: var(--card-bg); border: 1px solid var(--secondary); border-radius: 8px; padding: 6px 2px; cursor: pointer; color: var(--secondary); transition: all 0.2s;">Dễ<br><span id="count-easy">0</span></div>
+        </div>
+
         <div class="difficulty-panel">
-            <button class="diff-btn diff-again" onclick="handleDifficulty('again', event)"><span class="diff-icon">🔄</span>Học lại<span>Again</span></button>
-            <button class="diff-btn diff-hard" onclick="handleDifficulty('hard', event)"><span class="diff-icon">🧠</span>Khó<span>Hard</span></button>
-            <button class="diff-btn diff-good" onclick="handleDifficulty('good', event)"><span class="diff-icon">👍</span>Tốt<span>Good</span></button>
-            <button class="diff-btn diff-easy" onclick="handleDifficulty('easy', event)"><span class="diff-icon">⭐</span>Dễ<span>Easy</span></button>
+            <button class="diff-btn diff-again" onclick="handleDifficulty('again', event)"><span class="diff-icon">🔄</span>Học lại <span id="btn-count-again">(0)</span><span>Again</span></button>
+            <button class="diff-btn diff-hard" onclick="handleDifficulty('hard', event)"><span class="diff-icon">🧠</span>Khó <span id="btn-count-hard">(0)</span><span>Hard</span></button>
+            <button class="diff-btn diff-good" onclick="handleDifficulty('good', event)"><span class="diff-icon">👍</span>Tốt <span id="btn-count-good">(0)</span><span>Good</span></button>
+            <button class="diff-btn diff-easy" onclick="handleDifficulty('easy', event)"><span class="diff-icon">⭐</span>Dễ <span id="btn-count-easy">(0)</span><span>Easy</span></button>
         </div>
 
         <footer>
@@ -412,10 +433,10 @@
             <input type="text" id="type-input" class="game-input" placeholder="Nhập cách đọc Hiragana/Kana..." onkeydown="checkTyping(event)" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
             
             <div class="type-actions">
-                <button id="type-skip-btn" class="mode-btn" style="width: 100%; padding: 14px; border-radius: 14px;" onclick="skipTyping()">Bỏ qua / Câu khác</button>
-                <button class="mode-btn" style="width: 100%; padding: 14px; border-radius: 14px; margin-top: 4px;" onclick="openTypingHistory()">📝 Xem lịch sử gõ</button>
+                <button id="type-skip-btn" class="mode-btn" style="width: 100%; padding: 10px; border-radius: 10px;" onclick="skipTyping()">Bỏ qua / Câu khác</button>
+                <button class="mode-btn" style="width: 100%; padding: 10px; border-radius: 10px; margin-top: 4px;" onclick="openTypingHistory()">📝 Xem lịch sử gõ</button>
             </div>
-            <p id="type-feedback" style="text-align:center; font-weight:bold; font-size:14px; height:20px; margin: 0;"></p>
+            <p id="type-feedback" style="text-align:center; font-weight:bold; font-size:13px; height:18px; margin: 0;"></p>
         </div>
     </div>
 
@@ -425,7 +446,7 @@
             <input type="text" id="vocab-search-input" class="search-input" placeholder="🔍 Nhập Kanji, Hán Việt hoặc Ý nghĩa để tra từ toàn bộ..." oninput="filterManagerList()">
         </div>
 
-        <h3 id="manager-title" style="margin:2px 0 6px 0; font-size:14px; color:var(--primary);">Danh sách</h3>
+        <h3 id="manager-title" style="margin:2px 0 4px 0; font-size:13px; color:var(--primary);">Danh sách</h3>
         <div class="vocab-table-wrapper">
             <table class="vocab-table">
                 <thead>
@@ -464,62 +485,62 @@
 
 <!-- Modal Lịch sử Gõ từ -->
 <div id="typing-history-modal" class="modal-overlay" onclick="closeTypingHistory()">
-    <div class="modal-content" onclick="event.stopPropagation()" style="max-height: 80vh; display: flex; flex-direction: column; width: 90%; max-width: 400px; padding: 20px;">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-height: 80vh; display: flex; flex-direction: column; width: 90%; max-width: 400px; padding: 16px;">
         <span class="modal-close" onclick="closeTypingHistory()">&times;</span>
-        <h3 style="margin-top: 0; margin-bottom: 12px; color: var(--primary);">Lịch sử gõ từ</h3>
+        <h3 style="margin-top: 0; margin-bottom: 10px; color: var(--primary);">Lịch sử gõ từ</h3>
         <div style="flex: 1; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 12px; background: var(--bg-color);">
-            <table style="width: 100%; border-collapse: collapse; font-size: 14px; text-align: left;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
                 <thead style="position: sticky; top: 0; background: var(--blur-bg); z-index: 10;">
                     <tr>
-                        <th style="padding: 10px; border-bottom: 1px solid var(--border-color);">Từ vựng</th>
-                        <th style="padding: 10px; border-bottom: 1px solid var(--border-color);">Đã nhập</th>
-                        <th style="padding: 10px; border-bottom: 1px solid var(--border-color);">Kết quả</th>
+                        <th style="padding: 8px; border-bottom: 1px solid var(--border-color);">Từ vựng</th>
+                        <th style="padding: 8px; border-bottom: 1px solid var(--border-color);">Đã nhập</th>
+                        <th style="padding: 8px; border-bottom: 1px solid var(--border-color);">Kết quả</th>
                     </tr>
                 </thead>
                 <tbody id="type-history-tbody"></tbody>
             </table>
         </div>
-        <button class="mode-btn" style="width: 100%; padding: 12px; margin-top: 16px; color: var(--error); border-color: var(--error);" onclick="clearTypingHistory()">🗑 Làm mới danh sách</button>
+        <button class="mode-btn" style="width: 100%; padding: 10px; margin-top: 12px; color: var(--error); border-color: var(--error);" onclick="clearTypingHistory()">🗑 Làm mới danh sách</button>
     </div>
 </div>
 
-<!-- ĐÃ THÊM: Giao diện Modal tùy chỉnh màu sắc chi tiết -->
+<!-- Modal Tùy chỉnh màu -->
 <div id="color-customizer-modal" class="modal-overlay" onclick="closeColorCustomizer()">
-    <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 400px; padding: 30px 24px;">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 400px; padding: 25px 20px;">
         <span class="modal-close" onclick="closeColorCustomizer()">&times;</span>
-        <h3 style="margin-top: 0; margin-bottom: 6px; color: var(--primary); font-size: 22px;">Tùy chỉnh bảng màu</h3>
-        <p id="customizer-subtitle" style="margin: 0 0 24px 0; font-size: 13px; color: var(--text-muted);">Đang sửa cấu hình giao diện: TỐI (Dark)</p>
+        <h3 style="margin-top: 0; margin-bottom: 4px; color: var(--primary); font-size: 20px;">Tùy chỉnh bảng màu</h3>
+        <p id="customizer-subtitle" style="margin: 0 0 16px 0; font-size: 12px; color: var(--text-muted);">Đang sửa cấu hình giao diện: TỐI (Dark)</p>
         
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; text-align: left; margin-bottom: 24px;">
-            <div style="display: flex; flex-direction: column; gap: 6px;">
-                <label style="font-size: 13px; font-weight: 600; color: var(--text-color);">Màu Nền:</label>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; text-align: left; margin-bottom: 20px;">
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-size: 12px; font-weight: 600; color: var(--text-color);">Màu Nền:</label>
                 <input type="color" class="custom-color-picker" data-var="--bg-color">
             </div>
-            <div style="display: flex; flex-direction: column; gap: 6px;">
-                <label style="font-size: 13px; font-weight: 600; color: var(--text-color);">Nền Thẻ Card:</label>
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-size: 12px; font-weight: 600; color: var(--text-color);">Nền Thẻ Card:</label>
                 <input type="color" class="custom-color-picker" data-var="--card-bg">
             </div>
-            <div style="display: flex; flex-direction: column; gap: 6px;">
-                <label style="font-size: 13px; font-weight: 600; color: var(--text-color);">Màu Chủ Đạo:</label>
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-size: 12px; font-weight: 600; color: var(--text-color);">Màu Chủ Đạo:</label>
                 <input type="color" class="custom-color-picker" data-var="--primary">
             </div>
-            <div style="display: flex; flex-direction: column; gap: 6px;">
-                <label style="font-size: 13px; font-weight: 600; color: var(--text-color);">Màu Phụ:</label>
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-size: 12px; font-weight: 600; color: var(--text-color);">Màu Phụ:</label>
                 <input type="color" class="custom-color-picker" data-var="--secondary">
             </div>
-            <div style="display: flex; flex-direction: column; gap: 6px;">
-                <label style="font-size: 13px; font-weight: 600; color: var(--text-color);">Điểm Nhấn:</label>
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-size: 12px; font-weight: 600; color: var(--text-color);">Điểm Nhấn:</label>
                 <input type="color" class="custom-color-picker" data-var="--accent">
             </div>
-            <div style="display: flex; flex-direction: column; gap: 6px;">
-                <label style="font-size: 13px; font-weight: 600; color: var(--text-color);">Màu Chữ:</label>
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-size: 12px; font-weight: 600; color: var(--text-color);">Màu Chữ:</label>
                 <input type="color" class="custom-color-picker" data-var="--text-color">
             </div>
         </div>
         
-        <div style="display: flex; gap: 12px;">
-            <button class="mode-btn" style="flex: 1; padding: 12px; font-size: 14px; border-radius: 12px; color: var(--text-color);" onclick="resetCustomColors()">Khôi phục chuẩn</button>
-            <button class="mode-btn active" style="flex: 1; padding: 12px; font-size: 14px; border-radius: 12px;" onclick="closeColorCustomizer()">Hoàn tất</button>
+        <div style="display: flex; gap: 10px;">
+            <button class="mode-btn" style="flex: 1; padding: 10px; font-size: 13px; border-radius: 10px; color: var(--text-color);" onclick="resetCustomColors()">Khôi phục chuẩn</button>
+            <button class="mode-btn active" style="flex: 1; padding: 10px; font-size: 13px; border-radius: 10px;" onclick="closeColorCustomizer()">Hoàn tất</button>
         </div>
     </div>
 </div>
@@ -531,7 +552,6 @@
         });
     }
 
-    // ĐÃ CẬP NHẬT: Tự động nạp bảng màu tùy chỉnh cho chủ đề được chọn khi mở trang
     (function() {
         const savedTheme = localStorage.getItem('app_theme') || 'dark';
         document.documentElement.setAttribute('data-theme', savedTheme);
@@ -539,6 +559,10 @@
     })();
 
     let isOfflineMode = false;
+
+    function refreshViewportHeight() {
+        document.body.style.height = '100dvh';
+    }
 
     function unlockAudio() {
         try {
@@ -560,29 +584,30 @@
 
     let db = JSON.parse(localStorage.getItem('jlpt_kanji_db')) || {
         "N3_Mondai_Demo": [
-            { kanji: "頑丈", kana: "がんじょう", meaning: "Chắc chắn, cứng cáp, khỏe mạnh", exampleJp: "この棚は頑丈に作られている。", exampleVi: "Cái kệ này được làm rất chắc chắn.", synonym: "", flipCount: 0, starred: false },
-            { kanji: "圧倒的", kana: "あっとうてき", meaning: "Một cách áp đảo, vượt trội", exampleJp: "圧倒的な強さで優勝した。", exampleVi: "Giành chiến thắng nhờ sức mạnh áp đảo.", synonym: "優勢", flipCount: 0, starred: false },
-            { kanji: "示唆", kana: "しさ", meaning: "Ám thị, khơi gợi, gợi ý", exampleJp: "彼の発言は多くのことを示唆している。", exampleVi: "Phát ngôn của anh ấy gợi ý rất nhiều điều.", synonym: "", flipCount: 0, starred: false }
+            { kanji: "頑丈", kana: "がんじょう", meaning: "Chắc chắn, cứng cáp, khỏe mạnh", exampleJp: "この棚は頑丈に作られている。", exampleVi: "Cái kệ này được làm rất chắc chắn.", synonym: "", flipCount: 0, starred: false, difficulty: "" },
+            { kanji: "圧倒的", kana: "あっとうてき", meaning: "Một cách áp đảo, vượt trội", exampleJp: "圧倒的な強さで優勝した。", exampleVi: "Giành chiến thắng nhờ sức mạnh áp đảo.", synonym: "優勢", flipCount: 0, starred: false, difficulty: "" },
+            { kanji: "示唆", kana: "しさ", meaning: "Ám thị, khơi gợi, gợi ý", exampleJp: "彼の発言は多くのことを示唆している。", exampleVi: "Phát ngôn của anh ấy gợi ý rất nhiều điều.", synonym: "", flipCount: 0, starred: false, difficulty: "" }
         ]
     };
     let currentList = [], activeWordIndex = 0, currentSheetName = "";
     let typingStats = { correct: 0, wrong: 0, total: 0 };
     let typeHistoryList = []; 
     let currentUtterance = null; 
+    let currentDiffFilter = 'all';
 
     window.onload = () => { 
         updateThemeToggleIcon();
         initSheetSelect(); 
         initColorPickers();
         
-        // TỐI ƯU IPHONE: Buộc tính toán lại viewport kích thước thật khi xoay màn hình hoặc từ bên ngoài quay lại app
-        window.addEventListener('resize', () => {
-            document.body.style.height = `${window.innerHeight}px`;
+        window.addEventListener('resize', refreshViewportHeight);
+        window.addEventListener('pageshow', refreshViewportHeight);
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) refreshViewportHeight();
         });
-        document.body.style.height = `${window.innerHeight}px`;
+        refreshViewportHeight();
     };
 
-    // ĐÃ THÊM: Logic điều khiển, hiển thị và lưu trữ hệ thống chọn màu mới
     function openColorCustomizer() {
         const theme = document.documentElement.getAttribute('data-theme');
         document.getElementById('customizer-subtitle').innerText = `Đang sửa cấu hình giao diện: ${theme === 'light' ? 'SÁNG (Light)' : 'TỐI (Dark)'}`;
@@ -610,7 +635,6 @@
                 const value = e.target.value;
                 document.documentElement.style.setProperty(variable, value);
                 
-                // Đồng bộ độ đục cho highlight dựa theo mã màu chủ đạo vừa chọn
                 if (variable === '--primary') {
                     document.documentElement.style.setProperty('--highlight-text', value);
                     document.documentElement.style.setProperty('--highlight-bg', hexToRgba(value, 0.23));
@@ -632,7 +656,6 @@
         const variables = ['--bg-color', '--card-bg', '--primary', '--secondary', '--accent', '--text-color', '--highlight-bg', '--highlight-text'];
         variables.forEach(v => document.documentElement.style.removeProperty(v));
         
-        // Cập nhật lại giá trị hiển thị trên các ô chọn màu
         const checkVars = ['--bg-color', '--card-bg', '--primary', '--secondary', '--accent', '--text-color'];
         checkVars.forEach(v => {
             const computedValue = getComputedStyle(document.documentElement).getPropertyValue(v).trim();
@@ -646,7 +669,6 @@
         const savedColors = localStorage.getItem('custom_colors_' + theme);
         const variables = ['--bg-color', '--card-bg', '--primary', '--secondary', '--accent', '--text-color', '--highlight-bg', '--highlight-text'];
         
-        // Xóa thuộc tính cũ để tránh bị đè màu giữa 2 chế độ
         variables.forEach(v => document.documentElement.style.removeProperty(v));
 
         if (savedColors) {
@@ -686,8 +708,6 @@
         document.documentElement.setAttribute('data-theme', newTheme);
         localStorage.setItem('app_theme', newTheme);
         updateThemeToggleIcon();
-        
-        // Nạp riêng bảng màu tùy chỉnh đã lưu của chế độ mới chọn
         applySavedCustomColors(newTheme);
     }
 
@@ -798,7 +818,8 @@
                                 exampleVi: cellE && cellE.v !== undefined ? String(cellE.v).trim() : "",
                                 synonym: cellF && cellF.v !== undefined ? String(cellF.v).trim() : "",
                                 hanviet: hv, flipCount: 0, starred: false,
-                                interval: 0, repetition: 0, efactor: 2.5, nextReview: 0
+                                interval: 0, repetition: 0, efactor: 2.5, nextReview: 0,
+                                difficulty: ""
                             });
                         } else { emptyStreak++; }
                         rowIndex++;
@@ -819,19 +840,27 @@
         currentSheetName = selectVal || Object.keys(db).filter(k => k !== '_amHanViet')[0];
         if (!currentSheetName) return;
         document.getElementById('only-bookmarked').checked = false;
-        
+        document.getElementById('global-level-filter').value = 'all';
+
         const searchInput = document.getElementById('vocab-search-input');
         if(searchInput) searchInput.value = '';
 
-        currentList = (db[currentSheetName] || []).map(w => { 
+        currentDiffFilter = 'all';
+
+        const full = db[currentSheetName] || [];
+        currentList = full.map(w => { 
             w.hanviet = autoTranslateHanViet(w.kanji); 
             if (w.interval === undefined) w.interval = 0;
             if (w.repetition === undefined) w.repetition = 0;
             if (w.efactor === undefined) w.efactor = 2.5;
             if (w.nextReview === undefined) w.nextReview = 0;
+            if (w.difficulty === undefined) w.difficulty = "";
             return w; 
         });
-        activeWordIndex = 0; updateFlashcard(); resetTypingCounters();
+        activeWordIndex = 0; 
+        updateFlashcard(); 
+        resetTypingCounters(); 
+        updateDifficultyCounts();
         if(document.getElementById('tab-manager').style.display === 'flex') { renderManagerList(); }
     }
 
@@ -847,10 +876,13 @@
             document.getElementById('vocab-search-input').value = '';
             renderManagerList();
         }
-        if(tabId === 'tab-typing') { updateTypingStatsUI(); setTimeout(() => document.getElementById('type-input').focus(), 150); }
+        if(tabId === 'tab-typing') { 
+            updateTypingStatsUI(); 
+            loadNextType();
+            setTimeout(() => document.getElementById('type-input').focus(), 150); 
+        }
         
-        // TỐI ƯU IPHONE: Khi đổi tab, ép Safari đồng bộ lại chiều cao tránh hụt khu vực footer bên dưới
-        document.body.style.height = `${window.innerHeight}px`;
+        refreshViewportHeight();
     }
 
     function updateFlashcard() {
@@ -899,6 +931,44 @@
         
         document.getElementById('flashcard-container').classList.remove('flipped');
         document.getElementById('fc-gemini').href = `https://gemini.google.com/?q=Phân tích từ vựng N3: "${word.kanji}"`;
+
+        /* ĐÃ CẬP NHẬT CHỨC NĂNG: Tăng thêm độ đậm và độ nổi bật cho nền thẻ flashcard đã phân loại */
+        const innerFront = document.querySelector('.flashcard-front');
+        const innerBack = document.querySelector('.flashcard-back');
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        
+        // Cấu hình tăng độ đậm màu nền riêng cho chế độ tối (dark mode) và sáng (light mode)
+        const opAgain = isDark ? '0.20' : '0.12';
+        const opHard = isDark ? '0.16' : '0.10';
+        const opGood = isDark ? '0.16' : '0.10';
+        const opEasy = isDark ? '0.20' : '0.12';
+
+        if (word.difficulty === 'again') {
+            innerFront.style.borderColor = 'var(--error)';
+            innerBack.style.borderColor = 'var(--error)';
+            innerFront.style.backgroundColor = `rgba(234, 92, 100, ${opAgain})`;
+            innerBack.style.backgroundColor = `rgba(234, 92, 100, ${opAgain})`;
+        } else if (word.difficulty === 'hard') {
+            innerFront.style.borderColor = 'var(--warning)';
+            innerBack.style.borderColor = 'var(--warning)';
+            innerFront.style.backgroundColor = `rgba(247, 198, 78, ${opHard})`;
+            innerBack.style.backgroundColor = `rgba(247, 198, 78, ${opHard})`;
+        } else if (word.difficulty === 'good') {
+            innerFront.style.borderColor = 'var(--success)';
+            innerBack.style.borderColor = 'var(--success)';
+            innerFront.style.backgroundColor = `rgba(94, 208, 163, ${opGood})`;
+            innerBack.style.backgroundColor = `rgba(94, 208, 163, ${opGood})`;
+        } else if (word.difficulty === 'easy') {
+            innerFront.style.borderColor = 'var(--secondary)';
+            innerBack.style.borderColor = 'var(--secondary)';
+            innerFront.style.backgroundColor = `rgba(161, 140, 209, ${opEasy})`;
+            innerBack.style.backgroundColor = `rgba(161, 140, 209, ${opEasy})`;
+        } else {
+            innerFront.style.borderColor = 'var(--border-color)';
+            innerBack.style.borderColor = 'var(--border-color)';
+            innerFront.style.backgroundColor = 'var(--card-bg)';
+            innerBack.style.backgroundColor = 'var(--card-bg)';
+        }
     }
 
     async function openMaziiApp(e) {
@@ -912,8 +982,7 @@
         const webUrl = `https://mazii.net/vi-VN/search/word/ja/${keyword}`;
         const appUrl = `mazii://search/${keyword}`;
         
-        // TỐI ƯU IPHONE: Ép chiều cao lại ngay trước khi gọi ứng dụng Mazii để giữ trạng thái view nguyên vẹn khi quay lại
-        document.body.style.height = `${window.innerHeight}px`;
+        refreshViewportHeight();
         
         if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
             const startTime = Date.now(); window.location.href = appUrl;
@@ -931,7 +1000,7 @@
         const webUrl = `https://mazii.net/vi-VN/search/word/ja/${keyword}`;
         const appUrl = `mazii://search/${keyword}`;
         
-        document.body.style.height = `${window.innerHeight}px`;
+        refreshViewportHeight();
         
         if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
             const startTime = Date.now(); window.location.href = appUrl;
@@ -950,6 +1019,7 @@
         else if (level === 'easy') score = 5;
 
         const word = currentList[activeWordIndex];
+        word.difficulty = level;
         
         if (score < 3) {
             word.repetition = 0;
@@ -972,7 +1042,95 @@
         word.nextReview = now + word.interval * 24 * 60 * 60 * 1000;
         
         saveToLocalStorage();
-        nextCard();
+        updateDifficultyCounts();
+
+        if (currentDiffFilter !== 'all') {
+            const full = db[currentSheetName] || [];
+            let baseList = document.getElementById('only-bookmarked').checked ? full.filter(w => w.starred) : [...full];
+            currentList = baseList.filter(w => w.difficulty === currentDiffFilter);
+            
+            if (currentList.length === 0) {
+                alert("🎉 Đã hoàn thành hết tất cả các từ trong nhóm này! Tự động quay về nhóm Tất cả.");
+                currentDiffFilter = 'all';
+                document.getElementById('global-level-filter').value = 'all';
+                currentList = baseList;
+                activeWordIndex = 0;
+            } else {
+                if (activeWordIndex >= currentList.length) activeWordIndex = 0;
+            }
+            updateFlashcard();
+        } else {
+            nextCard();
+        }
+    }
+
+    function updateDifficultyCounts() {
+        const full = db[currentSheetName] || [];
+        const baseData = document.getElementById('only-bookmarked').checked ? full.filter(w => w.starred) : full;
+        
+        let cAll = baseData.length;
+        let cAgain = baseData.filter(w => w.difficulty === 'again').length;
+        let cHard = baseData.filter(w => w.difficulty === 'hard').length;
+        let cGood = baseData.filter(w => w.difficulty === 'good').length;
+        let cEasy = baseData.filter(w => w.difficulty === 'easy').length;
+        
+        document.getElementById('count-all').innerText = cAll;
+        document.getElementById('count-again').innerText = cAgain;
+        document.getElementById('count-hard').innerText = cHard;
+        document.getElementById('count-good').innerText = cGood;
+        document.getElementById('count-easy').innerText = cEasy;
+
+        document.getElementById('btn-count-again').innerText = `(${cAgain})`;
+        document.getElementById('btn-count-hard').innerText = `(${cHard})`;
+        document.getElementById('btn-count-good').innerText = `(${cGood})`;
+        document.getElementById('btn-count-easy').innerText = `(${cEasy})`;
+        
+        ['all', 'again', 'hard', 'good', 'easy'].forEach(f => {
+            const el = document.getElementById(`btn-filter-${f}`);
+            if (el) {
+                if (currentDiffFilter === f) {
+                    el.style.background = 'var(--highlight-bg)';
+                    el.style.borderWidth = '2px';
+                } else {
+                    el.style.background = 'var(--card-bg)';
+                    el.style.borderWidth = '1px';
+                }
+            }
+        });
+    }
+
+    function changeGlobalLevelFilter() {
+        const level = document.getElementById('global-level-filter').value;
+        currentDiffFilter = level;
+        
+        const full = db[currentSheetName] || [];
+        let baseList = document.getElementById('only-bookmarked').checked ? full.filter(w => w.starred) : [...full];
+        
+        if (level !== 'all') {
+            const filtered = baseList.filter(w => w.difficulty === level);
+            if (filtered.length === 0) {
+                alert("Không có từ nào thuộc nhóm này trong danh sách hiện tại!");
+                document.getElementById('global-level-filter').value = 'all';
+                currentDiffFilter = 'all';
+                currentList = baseList;
+            } else {
+                currentList = filtered;
+            }
+        } else {
+            currentList = baseList;
+        }
+        
+        activeWordIndex = 0;
+        updateFlashcard();
+        updateDifficultyCounts();
+        
+        loadNextType();
+        filterManagerList();
+    }
+
+    function filterByDifficulty(level) {
+        document.getElementById('global-level-filter').value = level;
+        changeGlobalLevelFilter();
     }
 
     function flipCard() {
@@ -988,7 +1146,7 @@
     function prevCard() { if(currentList.length === 0) return; if(activeWordIndex > 0) activeWordIndex--; else activeWordIndex = currentList.length - 1; updateFlashcard(); }
     function shuffleCards() { if(currentList.length === 0) return; currentList.sort(() => Math.random() - 0.5); activeWordIndex = 0; updateFlashcard(); }
     
-    function toggleStar(e) { e.stopPropagation(); if(!currentList[activeWordIndex]) return; currentList[activeWordIndex].starred = !currentList[activeWordIndex].starred; saveToLocalStorage(); updateStarUI(); }
+    function toggleStar(e) { e.stopPropagation(); if(!currentList[activeWordIndex]) return; currentList[activeWordIndex].starred = !currentList[activeWordIndex].starred; saveToLocalStorage(); updateStarUI(); updateDifficultyCounts(); }
     function updateStarUI() {
         const word = currentList[activeWordIndex]; if(!word) return;
         document.querySelectorAll('.star-icon').forEach(el => { 
@@ -999,11 +1157,20 @@
     
     function toggleStarredFilter() {
         const full = db[currentSheetName] || [];
-        currentList = document.getElementById('only-bookmarked').checked ? full.filter(w => w.starred) : [...full];
-        if(currentList.length === 0) { alert("Chưa có thẻ đánh dấu!"); document.getElementById('only-bookmarked').checked = false; currentList = [...full]; }
+        let baseDataList = document.getElementById('only-bookmarked').checked ? full.filter(w => w.starred) : [...full];
+        if(baseDataList.length === 0) { alert("Chưa có thẻ đánh dấu!"); document.getElementById('only-bookmarked').checked = false; baseDataList = [...full]; }
+        
+        document.getElementById('global-level-filter').value = 'all';
+        currentDiffFilter = 'all';
+        currentList = baseDataList;
+        
         const searchInput = document.getElementById('vocab-search-input');
         if(searchInput) searchInput.value = '';
-        activeWordIndex = 0; updateFlashcard(); filterManagerList(); 
+        activeWordIndex = 0; 
+        updateFlashcard(); 
+        loadNextType();
+        filterManagerList(); 
+        updateDifficultyCounts();
     }
 
     function speakJapaneseText(e, text) { 
@@ -1012,14 +1179,12 @@
         if(!text) return;
         try { window.speechSynthesis.cancel(); } catch(err) { }
         
-        // KIỂM TRA & TỐI ƯU IPHONE: Lọc bỏ toàn bộ thẻ html <mark> trước khi đưa vào hàng đợi giọng đọc của Siri
         const cleanText = text.replace(/<[^>]*>/g, ''); 
         currentUtterance = new SpeechSynthesisUtterance(cleanText); 
         currentUtterance.lang = 'ja-JP'; currentUtterance.rate = 0.95; 
         
         if (window.speechSynthesis.getVoices) {
             const voices = window.speechSynthesis.getVoices();
-            // TỐI ƯU GHI ÂM TỰ NHIÊN: Lọc tìm kiếm engine âm thanh Siri giọng nữ hoặc Bản Premium cao cấp tích hợp trên iOS
             let premiumVoice = voices.find(v => v.lang.startsWith('ja') && v.name.toLowerCase().includes('siri')) ||
                                voices.find(v => v.lang.startsWith('ja') && v.name.toLowerCase().includes('premium')) ||
                                voices.find(v => v.lang.startsWith('ja'));
@@ -1041,7 +1206,11 @@
     }
     
     function loadNextType() { 
-        if (currentList.length === 0) return;
+        if (currentList.length === 0) {
+            document.getElementById('type-q').innerText = "Trống"; 
+            document.getElementById('type-hint').innerText = "-"; 
+            return;
+        }
         let kanjiOnlyList = currentList.filter(w => /[\u4e00-\u9faf]/.test(w.kanji));
         if (kanjiOnlyList.length === 0) kanjiOnlyList = currentList;
         if (kanjiOnlyList.length === 0) {
@@ -1144,16 +1313,17 @@
         const keyword = document.getElementById('vocab-search-input').value.trim().toLowerCase();
         const tbody = document.getElementById('vocab-list-tbody'); tbody.innerHTML = '';
         const isOnlyBookmarked = document.getElementById('only-bookmarked').checked;
+        const levelFilter = document.getElementById('global-level-filter').value;
         const seenResults = new Set();
         
         if (keyword) {
             for (const sheetName in db) {
-                if (sheetName === '_amHanViol') continue;
                 if (sheetName === '_amHanViet') continue;
                 const fullList = db[sheetName] || [];
                 
                 fullList.forEach((w, index) => {
                     if (isOnlyBookmarked && !w.starred) return;
+                    if (levelFilter !== 'all' && w.difficulty !== levelFilter) return;
                     
                     const kj = (w.kanji || '').toLowerCase(); 
                     const hv = (w.hanviet || autoTranslateHanViet(w.kanji)).toLowerCase();
@@ -1168,7 +1338,6 @@
                     
                     let tr = document.createElement('tr');
                     tr.onclick = () => showKanjiPopup(index, sheetName);
-                    // ĐA SỬA: Thay đổi white-space thành nowrap tại cột đầu tiên để không bị vỡ dòng mục STT
                     tr.innerHTML = `
                         <td style="font-size: 11px; white-space: nowrap; max-width: 100px; color: var(--text-muted); line-height: 1.2;">
                             ${sheetName}<br><b>${index + 2}</b>
@@ -1184,7 +1353,10 @@
             }
         } else {
             const fullList = db[currentSheetName] || [];
-            const baseDataList = isOnlyBookmarked ? fullList.filter(w => w.starred) : fullList; 
+            let baseDataList = isOnlyBookmarked ? fullList.filter(w => w.starred) : [...fullList]; 
+            if (levelFilter !== 'all') {
+                baseDataList = baseDataList.filter(w => w.difficulty === levelFilter);
+            }
             
             baseDataList.forEach((w, index) => {
                 let tr = document.createElement('tr');
@@ -1215,6 +1387,7 @@
                 updateFlashcard();
             }
             filterManagerList();
+            updateDifficultyCounts();
         }
     }
 
