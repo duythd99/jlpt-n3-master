@@ -619,6 +619,9 @@
     let typeHistoryList = []; 
     let currentUtterance = null; 
     let currentDiffFilter = 'all';
+    
+    // BIẾN QUẢN LÝ POOL GÕ TỪ RANDOM KHÔNG TRÙNG LẶP
+    let typingPool = [];
 
     window.onload = () => { 
         updateThemeToggleIcon();
@@ -1149,6 +1152,8 @@
         updateFlashcard();
         updateDifficultyCounts();
         
+        // Reset pool gõ từ khi đổi bộ lọc mức độ
+        typingPool = [];
         loadNextType();
         filterManagerList();
     }
@@ -1193,6 +1198,8 @@
         if(searchInput) searchInput.value = '';
         activeWordIndex = 0; 
         updateFlashcard(); 
+        // Reset pool gõ từ khi đổi bộ lọc sao chú ý
+        typingPool = [];
         loadNextType();
         filterManagerList(); 
         updateDifficultyCounts();
@@ -1223,7 +1230,7 @@
     function revealBlur(e, el) { if(e) e.stopPropagation(); el.classList.toggle('revealed'); }
 
     let typeCurrent = null;
-    function resetTypingCounters() { typingStats = { correct: 0, wrong: 0, total: 0 }; updateTypingStatsUI(); loadNextType(); }
+    function resetTypingCounters() { typingStats = { correct: 0, wrong: 0, total: 0 }; typingPool = []; updateTypingStatsUI(); loadNextType(); }
     function updateTypingStatsUI() {
         document.getElementById('type-correct-count').innerText = typingStats.correct;
         document.getElementById('type-wrong-count').innerText = typingStats.wrong;
@@ -1236,18 +1243,36 @@
             document.getElementById('type-hint').innerText = "-"; 
             return;
         }
-        let kanjiOnlyList = currentList.filter(w => /[\u4e00-\u9faf]/.test(w.kanji));
-        if (kanjiOnlyList.length === 0) kanjiOnlyList = currentList;
-        if (kanjiOnlyList.length === 0) {
-            document.getElementById('type-q').innerText = "Trống"; document.getElementById('type-hint').innerText = "-"; return;
+
+        // TẠO POOL RANDOM KHÔNG TRÙNG LẶP NẾU POOL ĐANG TRỐNG
+        if (typingPool.length === 0) {
+            let kanjiOnlyList = currentList.filter(w => /[\u4e00-\u9faf]/.test(w.kanji));
+            if (kanjiOnlyList.length === 0) kanjiOnlyList = [...currentList];
+            
+            if (kanjiOnlyList.length === 0) {
+                document.getElementById('type-q').innerText = "Trống"; 
+                document.getElementById('type-hint').innerText = "-"; 
+                return;
+            }
+            // Trộn ngẫu nhiên danh sách và gán vào pool gõ từ
+            typingPool = [...kanjiOnlyList].sort(() => Math.random() - 0.5);
         }
-        typeCurrent = kanjiOnlyList[Math.floor(Math.random() * kanjiOnlyList.length)]; 
+
+        // Bốc từ tiếp theo ra khỏi pool
+        typeCurrent = typingPool.pop(); 
+        
         document.getElementById('type-q').innerText = typeCurrent.kanji; 
         document.getElementById('type-hint').innerText = typeCurrent.meaning;
         const i = document.getElementById('type-input'); i.value = ''; i.disabled = false; 
         document.getElementById('type-feedback').innerText = ''; i.focus(); 
     }
     
+    // Sắp xếp lịch sử theo thứ tự ưu tiên: Qua (Bỏ qua) -> Sai -> Đúng
+    function sortTypeHistory() {
+        const order = { 'Qua': 1, 'Sai': 2, 'Đúng': 3 };
+        typeHistoryList.sort((a, b) => order[a.status] - order[b.status]);
+    }
+
     function checkTyping(e) { 
         if (e.key === 'Enter' || e.keyCode === 13) { 
             const i = document.getElementById('type-input'); 
@@ -1263,13 +1288,35 @@
                 document.getElementById('type-feedback').style.color = 'var(--success)'; 
                 document.getElementById('type-feedback').innerText = 'Chính xác! 🎉'; 
                 typeHistoryList.unshift({ word: typeCurrent.kanji, kana: typeCurrent.kana, input: i.value.trim(), status: 'Đúng', color: 'var(--success)' });
-                setTimeout(loadNextType, 800); 
+                sortTypeHistory();
+                
+                // KIỂM TRA NẾU ĐÃ HẾT TỪ TRONG PHẦN NÀY ĐỂ MỞ LỊCH SỬ TỰ ĐỘNG
+                if (typingPool.length === 0) {
+                    setTimeout(() => { 
+                        alert("🌸 Chúc mừng! Bạn đã gõ hết sạch toàn bộ các từ trong phần này rồi!"); 
+                        openTypingHistory();
+                        loadNextType(); 
+                    }, 800);
+                } else {
+                    setTimeout(loadNextType, 800); 
+                }
             } else { 
                 typingStats.wrong += 1; updateTypingStatsUI();
                 document.getElementById('type-feedback').style.color = 'var(--error)'; 
                 document.getElementById('type-feedback').innerText = `Sai rồi! Đáp án: ${typeCurrent.kana}`; 
                 typeHistoryList.unshift({ word: typeCurrent.kanji, kana: typeCurrent.kana, input: i.value.trim(), status: 'Sai', color: 'var(--error)' });
-                setTimeout(loadNextType, 1800); 
+                sortTypeHistory();
+                
+                // KIỂM TRA NẾU ĐÃ HẾT TỪ TRONG PHẦN NÀY ĐỂ MỞ LỊCH SỬ TỰ ĐỘNG
+                if (typingPool.length === 0) {
+                    setTimeout(() => { 
+                        alert("🌸 Chúc mừng! Bạn đã gõ hết sạch toàn bộ các từ trong phần này rồi!"); 
+                        openTypingHistory();
+                        loadNextType(); 
+                    }, 1800);
+                } else {
+                    setTimeout(loadNextType, 1800); 
+                }
             } 
         } 
     }
@@ -1281,7 +1328,18 @@
         document.getElementById('type-feedback').innerText = `Đáp án đúng: ${typeCurrent.kana}`;
         document.getElementById('type-input').disabled = true;
         typeHistoryList.unshift({ word: typeCurrent.kanji, kana: typeCurrent.kana, input: '(Bỏ qua)', status: 'Qua', color: 'var(--warning)' });
-        setTimeout(loadNextType, 1200);
+        sortTypeHistory();
+        
+        // KIỂM TRA NẾU ĐÃ HẾT TỪ TRONG PHẦN NÀY ĐỂ MỞ LỊCH SỬ TỰ ĐỘNG
+        if (typingPool.length === 0) {
+            setTimeout(() => { 
+                alert("🌸 Chúc mừng! Bạn đã gõ hết sạch toàn bộ các từ trong phần này rồi!"); 
+                openTypingHistory();
+                loadNextType(); 
+            }, 1200);
+        } else {
+            setTimeout(loadNextType, 1200);
+        }
     }
 
     function renderDiff(input, correct) {
@@ -1328,7 +1386,13 @@
     }
 
     function closeTypingHistory() { document.getElementById('typing-history-modal').style.display = 'none'; }
-    function clearTypingHistory() { typeHistoryList = []; openTypingHistory(); }
+    
+    function clearTypingHistory() { 
+        typeHistoryList = []; 
+        typingStats = { correct: 0, wrong: 0, total: 0 };
+        updateTypingStatsUI();
+        openTypingHistory(); 
+    }
 
     function renderManagerList() {
         document.getElementById('manager-title').innerText = `Bài học: ${currentSheetName}`; filterManagerList(); 
