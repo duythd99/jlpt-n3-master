@@ -446,7 +446,10 @@
             <input type="text" id="vocab-search-input" class="search-input" placeholder="🔍 Nhập Kanji, Hán Việt hoặc Ý nghĩa để tra từ toàn bộ..." oninput="filterManagerList()">
         </div>
 
-        <h3 id="manager-title" style="margin:2px 0 4px 0; font-size:13px; color:var(--primary);">Danh sách</h3>
+        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin: 2px 0 4px 0;">
+            <h3 id="manager-title" style="margin: 0; font-size: 13px; color: var(--primary);">Danh sách</h3>
+            <span onclick="openZoomListPopup()" style="cursor: pointer; font-size: 16px; padding: 0 4px; display: inline-flex; align-items: center; justify-content: center;" title="Xem danh sách phóng to">🔍</span>
+        </div>
         <div class="vocab-table-wrapper">
             <table class="vocab-table">
                 <thead>
@@ -479,6 +482,28 @@
         <div id="modal-example-vi" class="modal-example-vi blur-box" onclick="revealBlur(event, this)"></div>
         <div>
             <button class="modal-action-btn" onclick="openMaziiFromPopup(event)">📖 Tra từ điển Mazii</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Xem Danh Sách Phóng To -->
+<div id="zoom-list-popup" class="modal-overlay" onclick="closeZoomListPopup()">
+    <div class="modal-content" onclick="event.stopPropagation()" style="width: 95%; max-width: 650px; max-height: 85vh; display: flex; flex-direction: column; padding: 16px; box-sizing: border-box;">
+        <span class="modal-close" onclick="closeZoomListPopup()">&times;</span>
+        <h3 id="zoom-list-title" style="margin-top: 0; margin-bottom: 12px; color: var(--primary); font-size: 15px; text-align: left;">Danh sách phóng to</h3>
+        <div style="flex: 1; overflow-y: auto; overflow-x: auto; border: 1px solid var(--border-color); border-radius: 12px; background: var(--card-bg); -webkit-overflow-scrolling: touch;">
+            <table class="vocab-table" style="font-size: 15px; width: 100%;">
+                <thead>
+                    <tr>
+                        <th style="padding: 12px 8px;">STT</th>
+                        <th style="padding: 12px 8px;">Từ vựng</th>
+                        <th style="padding: 12px 8px;">Hán Việt</th>
+                        <th style="padding: 12px 8px;">Cách đọc</th>
+                        <th style="padding: 12px 8px;">Ý nghĩa</th>
+                    </tr>
+                </thead>
+                <tbody id="zoom-list-tbody"></tbody>
+            </table>
         </div>
     </div>
 </div>
@@ -1410,6 +1435,74 @@
     }
 
     function closeKanjiPopup() { document.getElementById('kanji-popup').style.display = 'none'; }
+
+    function openZoomListPopup() {
+        const keyword = document.getElementById('vocab-search-input').value.trim().toLowerCase();
+        const tbody = document.getElementById('zoom-list-tbody'); tbody.innerHTML = '';
+        const isOnlyBookmarked = document.getElementById('only-bookmarked').checked;
+        const levelFilter = document.getElementById('global-level-filter').value;
+        const seenResults = new Set();
+        
+        document.getElementById('zoom-list-title').innerText = `🔍 Phóng to - ${document.getElementById('manager-title').innerText}`;
+
+        if (keyword) {
+            for (const sheetName in db) {
+                if (sheetName === '_amHanViet') continue;
+                const fullList = db[sheetName] || [];
+                
+                fullList.forEach((w, index) => {
+                    if (isOnlyBookmarked && !w.starred) return;
+                    if (levelFilter !== 'all' && w.difficulty !== levelFilter) return;
+                    
+                    const kj = (w.kanji || '').toLowerCase(); 
+                    const hv = (w.hanviet || autoTranslateHanViet(w.kanji)).toLowerCase();
+                    const mn = (w.meaning || '').toLowerCase(); 
+                    const kn = (w.kana || '').toLowerCase();
+                    
+                    if (!kj.includes(keyword) && !hv.includes(keyword) && !mn.includes(keyword) && !kn.includes(keyword)) return;
+                    
+                    const uniqueKey = `${w.kanji.trim()}|${w.kana.trim()}|${w.meaning.trim()}`;
+                    if (seenResults.has(uniqueKey)) return;
+                    seenResults.add(uniqueKey);
+                    
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td style="font-size: 11px; text-align: center; color: var(--text-muted); padding: 12px 8px; line-height: 1.2;">
+                            ${sheetName}<br><b>${index + 2}</b>
+                        </td>
+                        <td style="font-weight: bold; color: var(--primary); font-size: 18px; padding: 12px 8px;">${highlightKeyword(w.kanji, keyword)}</td>
+                        <td style="color: var(--accent); font-weight: bold; text-transform: uppercase; font-size: 16px; padding: 12px 8px;">${highlightKeyword(w.hanviet || autoTranslateHanViet(w.kanji), keyword)}</td>
+                        <td style="font-size: 16px; padding: 12px 8px;">${highlightKeyword(w.kana || '---', keyword)}</td>
+                        <td style="white-space: normal; font-size: 15px; padding: 12px 8px; line-height: 1.4;">${highlightKeyword(w.meaning, keyword)}</td>`;
+                    tbody.appendChild(tr);
+                });
+            }
+        } else {
+            const fullList = db[currentSheetName] || [];
+            let baseDataList = isOnlyBookmarked ? fullList.filter(w => w.starred) : [...fullList]; 
+            if (levelFilter !== 'all') {
+                baseDataList = baseDataList.filter(w => w.difficulty === levelFilter);
+            }
+            
+            baseDataList.forEach((w, index) => {
+                let tr = document.createElement('tr');
+                const originalIndexInSheet = fullList.findIndex(orig => orig.kanji === w.kanji);
+                const idx = originalIndexInSheet !== -1 ? originalIndexInSheet : index;
+                tr.innerHTML = `
+                    <td style="text-align: center; padding: 12px 8px; font-weight: bold;">${idx + 2}</td>
+                    <td style="font-weight: bold; color: var(--primary); font-size: 18px; padding: 12px 8px;">${w.kanji}</td>
+                    <td style="color: var(--accent); font-weight: bold; text-transform: uppercase; font-size: 16px; padding: 12px 8px;">${w.hanviet || autoTranslateHanViet(w.kanji)}</td>
+                    <td style="font-size: 16px; padding: 12px 8px;">${w.kana || '---'}</td>
+                    <td style="white-space: normal; font-size: 15px; padding: 12px 8px; line-height: 1.4;">${w.meaning}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+        document.getElementById('zoom-list-popup').style.display = 'flex';
+    }
+
+    function closeZoomListPopup() {
+        document.getElementById('zoom-list-popup').style.display = 'none';
+    }
 </script>
 </body>
 </html>
