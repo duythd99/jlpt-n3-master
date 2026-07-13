@@ -490,9 +490,9 @@
 <div id="zoom-list-popup" class="modal-overlay" onclick="closeZoomListPopup()">
     <div class="modal-content" onclick="event.stopPropagation()" style="width: 95%; max-width: 650px; max-height: 85vh; display: flex; flex-direction: column; padding: 16px; box-sizing: border-box;">
         <span class="modal-close" onclick="closeZoomListPopup()">&times;</span>
-        <h3 id="zoom-list-title" style="margin-top: 0; margin-bottom: 12px; color: var(--primary); font-size: 15px; text-align: left;">Danh sách phóng to</h3>
+        <h3 id="zoom-list-title" style="margin-top: 0; margin-bottom: 12px; color: var(--primary); font-size: 30px; text-align: left;">Danh sách phóng to</h3>
         <div style="flex: 1; overflow-y: auto; overflow-x: auto; border: 1px solid var(--border-color); border-radius: 12px; background: var(--card-bg); -webkit-overflow-scrolling: touch;">
-            <table class="vocab-table" style="font-size: 15px; width: 100%;">
+            <table class="vocab-table" style="font-size: 30px; width: 100%;">
                 <thead>
                     <tr>
                         <th style="padding: 12px 8px;">STT</th>
@@ -609,7 +609,7 @@
 
     let db = JSON.parse(localStorage.getItem('jlpt_kanji_db')) || {
         "N3_Mondai_Demo": [
-            { kanji: "頑丈", kana: "がんじょう", meaning: "Chắc chắn, cứng cáp, khỏe mạnh", exampleJp: "この棚は頑丈に作られている。", exampleVi: "Cái kệ này được làm rất chắc chắn.", synonym: "", flipCount: 0, starred: false, difficulty: "" },
+            { kanji: "頑丈", kana: "がんじょう", meaning: "Chắc chắn, cứng cáp, khỏe mạnh", exampleJp: "この棚 là 頑丈 に作られている。", exampleVi: "Cái kệ này được làm rất chắc chắn.", synonym: "", flipCount: 0, starred: false, difficulty: "" },
             { kanji: "圧倒的", kana: "あっとうてき", meaning: "Một cách áp đảo, vượt trội", exampleJp: "圧倒的な強さで優勝した。", exampleVi: "Giành chiến thắng nhờ sức mạnh áp đảo.", synonym: "優勢", flipCount: 0, starred: false, difficulty: "" },
             { kanji: "示唆", kana: "しさ", meaning: "Ám thị, khơi gợi, gợi ý", exampleJp: "彼の発言は多くのことを示唆している。", exampleVi: "Phát ngôn của anh ấy gợi ý rất nhiều điều.", synonym: "", flipCount: 0, starred: false, difficulty: "" }
         ]
