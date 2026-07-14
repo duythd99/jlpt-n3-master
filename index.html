@@ -1568,5 +1568,218 @@
         document.getElementById('zoom-list-popup').style.display = 'none';
     }
 </script>
+
+<!-- ================= PHÂN HỆ ĐỒNG BỘ TIẾN ĐỘ CHUYỂN VÙNG (THÊM MỚI) ================= -->
+<!-- Nút nổi để mở bảng điều khiển đồng bộ -->
+<button id="sync-fab" style="position: fixed; bottom: 20px; right: 20px; z-index: 1999; background-color: var(--primary); color: white; border: none; border-radius: 50%; width: 44px; height: 44px; font-size: 20px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;" title="Đồng bộ giữa Laptop và Điện thoại">🔄</button>
+
+<!-- Giao diện hộp thoại Đồng bộ thiết bị nội bộ -->
+<div id="sync-modal" class="modal-overlay" onclick="closeSyncModal()">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 350px; padding: 20px 16px;">
+        <span class="modal-close" onclick="closeSyncModal()">&times;</span>
+        <h3 style="color: var(--primary); margin-top: 0; margin-bottom: 6px; font-size: 18px;">Đồng Bộ Thiết Bị 🔄</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin: 0 0 12px 0; line-height: 1.3;">Kết nối chung một mạng Wi-Fi để hợp nhất tiến độ học tập giữa Laptop và Điện thoại.</p>
+        
+        <div style="margin: 12px 0; text-align: left;">
+            <span style="font-size: 12px; font-weight: bold; display: block; margin-bottom: 4px; color: var(--text-color);">Mã của thiết bị này:</span>
+            <div id="sync-my-id" style="background: var(--bg-color); color: var(--text-color); padding: 8px; border-radius: 8px; font-family: monospace; font-weight: bold; word-break: break-all; border: 1px dashed var(--border-color); text-align: center; font-size: 13px;">Đang tải mã thiết bị...</div>
+        </div>
+        
+        <div id="sync-qrcode-container" style="display: flex; justify-content: center; margin: 12px 0; background: white; padding: 8px; border-radius: 8px; width: fit-content; margin-left: auto; margin-right: auto; box-shadow: 0 2px 6px rgba(0,0,0,0.15);"></div>
+        
+        <hr class="modal-divider" style="margin: 12px 0;">
+        
+        <div style="margin: 12px 0; text-align: left;">
+            <label style="font-size: 12px; font-weight: bold; display: block; margin-bottom: 4px; color: var(--text-color);">Nhập mã thiết bị đối phương:</label>
+            <input type="text" id="sync-remote-id" class="game-input" style="font-size: 13px; padding: 8px; height: auto;" placeholder="Dán mã của máy kia vào đây...">
+        </div>
+        
+        <button id="sync-action-btn" class="nav-btn btn-prev" style="width: 100%; padding: 10px; font-size: 13px;" onclick="connectToPeer()">Kết nối & Trộn dữ liệu</button>
+        <p id="sync-status-text" style="font-size: 12px; margin: 8px 0 0 0; font-weight: bold; color: var(--accent); min-height: 15px;"></p>
+    </div>
+</div>
+
+<!-- CDN các thư viện bổ sung: PeerJS đóng vai trò truyền dẫn, QRCode sinh mã kết nối nhanh -->
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<script>
+    let syncPeer = null;
+    let syncConn = null;
+
+    document.getElementById('sync-fab').addEventListener('click', openSyncModal);
+
+    function openSyncModal() {
+        document.getElementById('sync-modal').style.display = 'flex';
+        if (!syncPeer) {
+            initSyncPeer();
+        }
+    }
+
+    function closeSyncModal() {
+        document.getElementById('sync-modal').style.display = 'none';
+    }
+
+    function initSyncPeer() {
+        const statusText = document.getElementById('sync-status-text');
+        statusText.innerText = "Đang khởi tạo cổng định danh...";
+        
+        syncPeer = new Peer();
+        
+        syncPeer.on('open', function(id) {
+            document.getElementById('sync-my-id').innerText = id;
+            statusText.innerText = "Sẵn sàng liên kết mạng!";
+            
+            const qrContainer = document.getElementById('sync-qrcode-container');
+            qrContainer.innerHTML = "";
+            new QRCode(qrContainer, {
+                text: id,
+                width: 110,
+                height: 110,
+                colorDark : "#000000",
+                colorLight : "#ffffff"
+            });
+        });
+        
+        syncPeer.on('connection', function(conn) {
+            syncConn = conn;
+            setupConnectionListeners(false);
+        });
+        
+        syncPeer.on('error', function(err) {
+            statusText.innerText = "Lỗi kết nối: " + err.type;
+            console.error(err);
+        });
+    }
+
+    function connectToPeer() {
+        const remoteId = document.getElementById('sync-remote-id').value.trim();
+        const statusText = document.getElementById('sync-status-text');
+        if (!remoteId) {
+            alert("Vui lòng điền mã ID của thiết bị kia!");
+            return;
+        }
+        statusText.innerText = "Đang bắt tay với thiết bị đối diện...";
+        syncConn = syncPeer.connect(remoteId);
+        setupConnectionListeners(true);
+    }
+
+    function setupConnectionListeners(isInitiator) {
+        const statusText = document.getElementById('sync-status-text');
+        
+        syncConn.on('open', function() {
+            statusText.innerText = "Liên kết thành công! Đang đồng bộ...";
+            if (isInitiator) {
+                const localData = {};
+                for (let i = 0; i < localStorage.length; i++) {
+                    const k = localStorage.key(i);
+                    localData[k] = localStorage.getItem(k);
+                }
+                syncConn.send({ type: 'SYNC_REQUEST', payload: localData });
+            }
+        });
+        
+        syncConn.on('data', function(data) {
+            if (!data) return;
+            
+            if (data.type === 'SYNC_REQUEST') {
+                statusText.innerText = "Đang tính toán hợp nhất dữ liệu...";
+                
+                const localDataBeforeMerge = {};
+                for (let i = 0; i < localStorage.length; i++) {
+                    const k = localStorage.key(i);
+                    localDataBeforeMerge[k] = localStorage.getItem(k);
+                }
+                
+                executeSmartMerge(data.payload);
+                
+                syncConn.send({ type: 'SYNC_RESPONSE', payload: localDataBeforeMerge });
+                
+                statusText.innerText = "Đồng bộ thành công! Đang tải lại...";
+                setTimeout(() => { window.location.reload(); }, 1200);
+            }
+            
+            if (data.type === 'SYNC_RESPONSE') {
+                statusText.innerText = "Đang đồng nhất cấu trúc phản hồi...";
+                executeSmartMerge(data.payload);
+                statusText.innerText = "Đồng bộ thành công! Đang tải lại...";
+                setTimeout(() => { window.location.reload(); }, 1200);
+            }
+        });
+        
+        syncConn.on('close', function() {
+            statusText.innerText = "Cổng truyền dẫn đã đóng.";
+        });
+    }
+
+    function executeSmartMerge(incomingStorage) {
+        try {
+            if (!incomingStorage) return;
+            
+            if (incomingStorage['app_theme'] && !localStorage.getItem('app_theme')) {
+                localStorage.setItem('app_theme', incomingStorage['app_theme']);
+            }
+            
+            let incomingDbRaw = incomingStorage['jlpt_kanji_db'];
+            if (!incomingDbRaw) return;
+            
+            let incomingDb = JSON.parse(incomingDbRaw);
+            let currentDb = JSON.parse(localStorage.getItem('jlpt_kanji_db')) || {};
+            
+            for (const sheet in incomingDb) {
+                if (sheet === '_amHanViet') {
+                    if (!currentDb['_amHanViet']) currentDb['_amHanViet'] = {};
+                    Object.assign(currentDb['_amHanViet'], incomingDb['_amHanViet']);
+                    continue;
+                }
+                
+                if (!currentDb[sheet]) {
+                    currentDb[sheet] = incomingDb[sheet];
+                    continue;
+                }
+                
+                const localArr = currentDb[sheet];
+                const remoteArr = incomingDb[sheet];
+                
+                remoteArr.forEach(remoteWord => {
+                    const localWord = localArr.find(w => w.kanji === remoteWord.kanji);
+                    if (localWord) {
+                        // Trộn thông minh: Ưu tiên thiết bị có lượt xem (flipCount) nhiều hơn hoặc có phân loại mức độ học tập tốt hơn
+                        if ((remoteWord.flipCount || 0) > (localWord.flipCount || 0)) {
+                            localWord.flipCount = remoteWord.flipCount;
+                        }
+                        if (remoteWord.starred) {
+                            localWord.starred = true;
+                        }
+                        if (remoteWord.difficulty && !localWord.difficulty) {
+                            localWord.difficulty = remoteWord.difficulty;
+                            localWord.repetition = remoteWord.repetition;
+                            localWord.interval = remoteWord.interval;
+                            localWord.efactor = remoteWord.efactor;
+                            localWord.nextReview = remoteWord.nextReview;
+                        } else if (remoteWord.difficulty && localWord.difficulty) {
+                            // Nếu cả 2 cùng phân loại, ưu tiên dữ liệu có thời điểm ôn tập muộn hơn (mới học sâu hơn)
+                            if ((remoteWord.nextReview || 0) > (localWord.nextReview || 0)) {
+                                localWord.difficulty = remoteWord.difficulty;
+                                localWord.repetition = remoteWord.repetition;
+                                localWord.interval = remoteWord.interval;
+                                localWord.efactor = remoteWord.efactor;
+                                localWord.nextReview = remoteWord.nextReview;
+                            }
+                        }
+                    } else {
+                        localArr.push(remoteWord);
+                    }
+                });
+            }
+            
+            localStorage.setItem('jlpt_kanji_db', JSON.stringify(currentDb));
+        } catch (err) {
+            console.error("Lỗi đồng bộ dữ liệu mạng nội bộ:", err);
+        }
+    }
+</script>
+<!-- =================================================================================== -->
+
 </body>
 </html>
