@@ -286,7 +286,7 @@
         .custom-color-picker::-webkit-color-swatch { border: none; border-radius: 6px; }
         .custom-color-picker::-moz-color-swatch { border: none; border-radius: 6px; }
     </style>
-</head>
+</</head>
 <body>
 
 <div class="header-row">
@@ -427,7 +427,7 @@
             <div class="quiz-question" id="type-q">-</div>
             <div class="quiz-hint-wrapper">
                 Gợi ý ý nghĩa:
-                <span id="type-hint" class="quiz-hint-text">-</span>
+                <span id="type-hint" class="quiz-hint-text blur-box" onclick="revealBlur(event, this)">-</span>
             </div>
             
             <input type="text" id="type-input" class="game-input" placeholder="Nhập cách đọc Hiragana/Kana..." onkeydown="checkTyping(event)" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
@@ -1262,7 +1262,11 @@
         typeCurrent = typingPool.pop(); 
         
         document.getElementById('type-q').innerText = typeCurrent.kanji; 
-        document.getElementById('type-hint').innerText = typeCurrent.meaning;
+        
+        const typeHintEl = document.getElementById('type-hint');
+        typeHintEl.innerText = typeCurrent.meaning;
+        typeHintEl.classList.remove('revealed'); // Chuyển về chế độ mờ của từ mới
+
         const i = document.getElementById('type-input'); i.value = ''; i.disabled = false; 
         document.getElementById('type-feedback').innerText = ''; i.focus(); 
     }
