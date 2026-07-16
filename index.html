@@ -286,7 +286,7 @@
         .custom-color-picker::-webkit-color-swatch { border: none; border-radius: 6px; }
         .custom-color-picker::-moz-color-swatch { border: none; border-radius: 6px; }
     </style>
-</</head>
+</head>
 <body>
 
 <div class="header-row">
@@ -430,13 +430,14 @@
                 <span id="type-hint" class="quiz-hint-text blur-box" onclick="revealBlur(event, this)">-</span>
             </div>
             
+            <p id="type-feedback" style="text-align:center; font-weight:bold; font-size:13px; height:18px; margin: 0;"></p>
+            
             <input type="text" id="type-input" class="game-input" placeholder="Nhập cách đọc Hiragana/Kana..." onkeydown="checkTyping(event)" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
             
             <div class="type-actions">
                 <button id="type-skip-btn" class="mode-btn" style="width: 100%; padding: 10px; border-radius: 10px;" onclick="skipTyping()">Bỏ qua / Câu khác</button>
                 <button class="mode-btn" style="width: 100%; padding: 10px; border-radius: 10px; margin-top: 4px;" onclick="openTypingHistory()">📝 Xem lịch sử gõ</button>
             </div>
-            <p id="type-feedback" style="text-align:center; font-weight:bold; font-size:13px; height:18px; margin: 0;"></p>
         </div>
     </div>
 
@@ -1227,7 +1228,7 @@
     
     function speakCurrentWord(e) { const w = currentList[activeWordIndex]; speakJapaneseText(e, w.kana || w.kanji); }
     function speakCurrentExample(e) { speakJapaneseText(e, currentList[activeWordIndex].exampleJp); }
-    function revealBlur(e, el) { if(e) e.stopPropagation(); el.classList.toggle('revealed'); }
+    function revealBlur(e, el) { if(e) e.stopPropagation(); el.classList.add('revealed'); }
 
     let typeCurrent = null;
     function resetTypingCounters() { typingStats = { correct: 0, wrong: 0, total: 0 }; typingPool = []; updateTypingStatsUI(); loadNextType(); }
@@ -1287,6 +1288,12 @@
             i.disabled = true; 
             typingStats.total += 1;
 
+            // Bất kể gõ đúng hay sai, tự động kích hoạt hiện gợi ý ý nghĩa bằng cách add class 'revealed'
+            const hintEl = document.getElementById('type-hint');
+            if (hintEl) {
+                hintEl.classList.add('revealed');
+            }
+
             if (v === typeCurrent.kana.toLowerCase()) { 
                 typingStats.correct += 1; updateTypingStatsUI();
                 document.getElementById('type-feedback').style.color = 'var(--success)'; 
@@ -1300,9 +1307,9 @@
                         alert("🌸 Chúc mừng! Bạn đã gõ hết sạch toàn bộ các từ trong phần này rồi!"); 
                         openTypingHistory();
                         loadNextType(); 
-                    }, 800);
+                    }, 1200);
                 } else {
-                    setTimeout(loadNextType, 800); 
+                    setTimeout(loadNextType, 1200); 
                 }
             } else { 
                 typingStats.wrong += 1; updateTypingStatsUI();
@@ -1317,9 +1324,9 @@
                         alert("🌸 Chúc mừng! Bạn đã gõ hết sạch toàn bộ các từ trong phần này rồi!"); 
                         openTypingHistory();
                         loadNextType(); 
-                    }, 1800);
+                    }, 2200);
                 } else {
-                    setTimeout(loadNextType, 1800); 
+                    setTimeout(loadNextType, 2200); 
                 }
             } 
         } 
@@ -1328,6 +1335,13 @@
     function skipTyping() {
         if (!typeCurrent) return;
         typingStats.total += 1; typingStats.wrong += 1; updateTypingStatsUI();
+        
+        // Tự động hiển thị phần gợi ý ý nghĩa khi bỏ qua câu
+        const hintEl = document.getElementById('type-hint');
+        if (hintEl) {
+            hintEl.classList.add('revealed');
+        }
+
         document.getElementById('type-feedback').style.color = 'var(--text-muted)';
         document.getElementById('type-feedback').innerText = `Đáp án đúng: ${typeCurrent.kana}`;
         document.getElementById('type-input').disabled = true;
@@ -1340,9 +1354,9 @@
                 alert("🌸 Chúc mừng! Bạn đã gõ hết sạch toàn bộ các từ trong phần này rồi!"); 
                 openTypingHistory();
                 loadNextType(); 
-                    }, 1200);
+            }, 1800);
         } else {
-            setTimeout(loadNextType, 1200);
+            setTimeout(loadNextType, 1800);
         }
     }
 
