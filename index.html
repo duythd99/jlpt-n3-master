@@ -795,18 +795,19 @@
         loadSheet();
     }
 
-    function handleExcelUpload(e) {
-        const file = e.target.files[0]; if (!file) return;
+    function handleExcelUpload(event) {
+        const file = event.target.files[0]; if (!file) return;
         const reader = new FileReader();
-        reader.onload = function(event) {
+        reader.onload = function(e) {
             try {
-                const data = new Uint8Array(event.target.result);
+                const data = new Uint8Array(e.target.result);
                 const workbook = XLSX.read(data, { type: 'array' });
-                const newDb = {};
-
+                
+                // Chuẩn bị một database tạm thời để giữ nguyên các amHanViet cũ nếu không tải mới
+                const tempAmHanViet = db['_amHanViet'] || {};
                 if (workbook.SheetNames.includes('AmHanViet')) {
                     const worksheet = workbook.Sheets['AmHanViet'];
-                    let rowIndex = 2; let emptyStreak = 0; const amHanVietMap = {};
+                    let rowIndex = 2; let emptyStreak = 0;
                     while (emptyStreak < 30) {
                         const cellA = worksheet[XLSX.utils.encode_cell({r: rowIndex - 1, c: 0})];
                         const valA = cellA && cellA.v !== undefined ? String(cellA.v).trim() : "";
@@ -814,19 +815,27 @@
                             emptyStreak = 0;
                             const cellB = worksheet[XLSX.utils.encode_cell({r: rowIndex - 1, c: 1})];
                             const valB = cellB && cellB.v !== undefined ? String(cellB.v).trim() : "";
-                            if (valB) amHanVietMap[valA] = valB.toUpperCase();
+                            if (valB) tempAmHanViet[valA] = valB.toUpperCase();
                         } else { emptyStreak++; }
                         rowIndex++;
                     }
-                    newDb['_amHanViet'] = amHanVietMap;
-                } else if (db['_amHanViet']) {
-                    newDb['_amHanViet'] = db['_amHanViet'];
                 }
+                db['_amHanViet'] = tempAmHanViet;
 
+                let validSheetsLoaded = 0;
                 workbook.SheetNames.forEach(sheetName => {
                     if (sheetName === 'AmHanViet') return;
-                    const worksheet = workbook.Sheets[sheetName]; const sheetData = [];
+                    const worksheet = workbook.Sheets[sheetName];
+                    
+                    // Khởi tạo mảng sheet cũ nếu chưa từng tồn tại
+                    if (!db[sheetName]) {
+                        db[sheetName] = [];
+                    }
+                    const localArr = db[sheetName];
+                    
                     let rowIndex = 2; let emptyStreak = 0;
+                    let incomingWords = [];
+
                     while (emptyStreak < 30) {
                         const cellA = worksheet[XLSX.utils.encode_cell({r: rowIndex - 1, c: 0})];
                         const valA = cellA && cellA.v !== undefined ? String(cellA.v).trim() : "";
@@ -838,28 +847,72 @@
                             const cellE = worksheet[XLSX.utils.encode_cell({r: rowIndex - 1, c: 4})];
                             const cellF = worksheet[XLSX.utils.encode_cell({r: rowIndex - 1, c: 5})];
                             const cellG = worksheet[XLSX.utils.encode_cell({r: rowIndex - 1, c: 6})];
+                            
                             let hv = cellG && cellG.v !== undefined ? String(cellG.v).trim() : "";
-                            if (!hv) hv = autoTranslateHanViet(valA, newDb);
-                            sheetData.push({
-                                kanji: valA, kana: cellB && cellB.v !== undefined ? String(cellB.v).trim() : "",
+                            if (!hv) hv = autoTranslateHanViet(valA);
+
+                            incomingWords.push({
+                                kanji: valA,
+                                kana: cellB && cellB.v !== undefined ? String(cellB.v).trim() : "",
                                 meaning: cellC && cellC.v !== undefined ? String(cellC.v).trim() : "",
                                 exampleJp: cellD && cellD.v !== undefined ? String(cellD.v).trim() : "",
                                 exampleVi: cellE && cellE.v !== undefined ? String(cellE.v).trim() : "",
                                 synonym: cellF && cellF.v !== undefined ? String(cellF.v).trim() : "",
-                                hanviet: hv, flipCount: 0, starred: false,
-                                interval: 0, repetition: 0, efactor: 2.5, nextReview: 0,
-                                difficulty: ""
+                                hanviet: hv
                             });
                         } else { emptyStreak++; }
                         rowIndex++;
                     }
-                    if (sheetData.length > 0) newDb[sheetName] = sheetData;
+
+                    if (incomingWords.length > 0) {
+                        validSheetsLoaded++;
+                        // Thực hiện hợp nhất thông minh, giữ nguyên tuyệt đối tiến độ cũ (sao, độ khó, lượt xem...)
+                        incomingWords.forEach(remoteWord => {
+                            const localWord = localArr.find(w => w.kanji === remoteWord.kanji);
+                            if (localWord) {
+                                // Cập nhật các thông tin cốt lõi từ file Excel mới nếu có thay đổi
+                                localWord.kana = remoteWord.kana;
+                                localWord.meaning = remoteWord.meaning;
+                                localWord.exampleJp = remoteWord.exampleJp;
+                                localWord.exampleVi = remoteWord.exampleVi;
+                                localWord.synonym = remoteWord.synonym;
+                                localWord.hanviet = remoteWord.hanviet;
+                                // Giữ nguyên các thông số cũ: localWord.starred, localWord.difficulty, localWord.flipCount, các biến SM-2...
+                            } else {
+                                // Nếu là từ mới hoàn toàn, khởi tạo các biến theo dõi tiến độ mặc định
+                                localArr.push({
+                                    ...remoteWord,
+                                    flipCount: 0,
+                                    starred: false,
+                                    interval: 0,
+                                    repetition: 0,
+                                    efactor: 2.5,
+                                    nextReview: 0,
+                                    difficulty: ""
+                                });
+                            }
+                        });
+                        
+                        // Loại bỏ các từ cũ trong localArr nếu chúng không còn xuất hiện trong file Excel mới
+                        for (let i = localArr.length - 1; i >= 0; i--) {
+                            const exists = incomingWords.some(w => w.kanji === localArr[i].kanji);
+                            if (!exists) {
+                                localArr.splice(i, 1);
+                            }
+                        }
+                    }
                 });
 
-                if (Object.keys(newDb).filter(k => k !== '_amHanViet').length > 0) {
-                    db = newDb; saveToLocalStorage(); alert("📥 Data đã được nạp và đồng bộ!"); initSheetSelect();
-                } else { alert("Lỗi định dạng dữ liệu tệp!"); }
-            } catch (err) { alert("Lỗi: " + err.message); }
+                if (validSheetsLoaded > 0) {
+                    saveToLocalStorage(); 
+                    alert("📥 Dữ liệu Excel mới đã được nạp thành công! Các tiến độ cũ của bạn đã được giữ nguyên tuyệt đối."); 
+                    initSheetSelect();
+                } else { 
+                    alert("Không tìm thấy dữ liệu hợp lệ trong tệp Excel!"); 
+                }
+            } catch (err) { 
+                alert("Lỗi khi xử lý tệp: " + err.message); 
+            }
         };
         reader.readAsArrayBuffer(file);
     }
