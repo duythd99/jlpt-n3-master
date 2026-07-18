@@ -820,22 +820,21 @@
                         rowIndex++;
                     }
                 }
-                db['_amHanViet'] = tempAmHanViet;
+
+                // KHỞI TẠO ĐỐI TƯỢNG DATABASE MỚI SẠCH: CHỈ CHỨA CÁC BÀI HỌC CỦA FILE EXCEL VỪA INPUT
+                const newDb = {};
+                newDb['_amHanViet'] = tempAmHanViet;
 
                 let validSheetsLoaded = 0;
                 workbook.SheetNames.forEach(sheetName => {
                     if (sheetName === 'AmHanViet') return;
                     const worksheet = workbook.Sheets[sheetName];
                     
-                    // Khởi tạo mảng sheet cũ nếu chưa từng tồn tại
-                    if (!db[sheetName]) {
-                        db[sheetName] = [];
-                    }
-                    const localArr = db[sheetName];
+                    newDb[sheetName] = [];
+                    // Lấy mảng bài học cũ tương ứng (nếu có) để đối chiếu và giữ nguyên tiến độ
+                    const localArr = db[sheetName] || [];
                     
                     let rowIndex = 2; let emptyStreak = 0;
-                    let incomingWords = [];
-
                     while (emptyStreak < 30) {
                         const cellA = worksheet[XLSX.utils.encode_cell({r: rowIndex - 1, c: 0})];
                         const valA = cellA && cellA.v !== undefined ? String(cellA.v).trim() : "";
@@ -849,9 +848,9 @@
                             const cellG = worksheet[XLSX.utils.encode_cell({r: rowIndex - 1, c: 6})];
                             
                             let hv = cellG && cellG.v !== undefined ? String(cellG.v).trim() : "";
-                            if (!hv) hv = autoTranslateHanViet(valA);
+                            if (!hv) hv = autoTranslateHanViet(valA, newDb);
 
-                            incomingWords.push({
+                            const remoteWord = {
                                 kanji: valA,
                                 kana: cellB && cellB.v !== undefined ? String(cellB.v).trim() : "",
                                 meaning: cellC && cellC.v !== undefined ? String(cellC.v).trim() : "",
@@ -859,28 +858,24 @@
                                 exampleVi: cellE && cellE.v !== undefined ? String(cellE.v).trim() : "",
                                 synonym: cellF && cellF.v !== undefined ? String(cellF.v).trim() : "",
                                 hanviet: hv
-                            });
-                        } else { emptyStreak++; }
-                        rowIndex++;
-                    }
+                            };
 
-                    if (incomingWords.length > 0) {
-                        validSheetsLoaded++;
-                        // Thực hiện hợp nhất thông minh, giữ nguyên tuyệt đối tiến độ cũ (sao, độ khó, lượt xem...)
-                        incomingWords.forEach(remoteWord => {
+                            // Tìm từ cũ trong bộ lưu trữ trước đó để giữ lại tiến độ
                             const localWord = localArr.find(w => w.kanji === remoteWord.kanji);
                             if (localWord) {
-                                // Cập nhật các thông tin cốt lõi từ file Excel mới nếu có thay đổi
-                                localWord.kana = remoteWord.kana;
-                                localWord.meaning = remoteWord.meaning;
-                                localWord.exampleJp = remoteWord.exampleJp;
-                                localWord.exampleVi = remoteWord.exampleVi;
-                                localWord.synonym = remoteWord.synonym;
-                                localWord.hanviet = remoteWord.hanviet;
-                                // Giữ nguyên các thông số cũ: localWord.starred, localWord.difficulty, localWord.flipCount, các biến SM-2...
+                                newDb[sheetName].push({
+                                    ...remoteWord,
+                                    flipCount: localWord.flipCount !== undefined ? localWord.flipCount : 0,
+                                    starred: localWord.starred !== undefined ? localWord.starred : false,
+                                    interval: localWord.interval !== undefined ? localWord.interval : 0,
+                                    repetition: localWord.repetition !== undefined ? localWord.repetition : 0,
+                                    efactor: localWord.efactor !== undefined ? localWord.efactor : 2.5,
+                                    nextReview: localWord.nextReview !== undefined ? localWord.nextReview : 0,
+                                    difficulty: localWord.difficulty !== undefined ? localWord.difficulty : ""
+                                });
                             } else {
-                                // Nếu là từ mới hoàn toàn, khởi tạo các biến theo dõi tiến độ mặc định
-                                localArr.push({
+                                // Ghi nhận từ mới hoàn toàn
+                                newDb[sheetName].push({
                                     ...remoteWord,
                                     flipCount: 0,
                                     starred: false,
@@ -891,21 +886,22 @@
                                     difficulty: ""
                                 });
                             }
-                        });
-                        
-                        // Loại bỏ các từ cũ trong localArr nếu chúng không còn xuất hiện trong file Excel mới
-                        for (let i = localArr.length - 1; i >= 0; i--) {
-                            const exists = incomingWords.some(w => w.kanji === localArr[i].kanji);
-                            if (!exists) {
-                                localArr.splice(i, 1);
-                            }
-                        }
+                        } else { emptyStreak++; }
+                        rowIndex++;
+                    }
+
+                    if (newDb[sheetName].length > 0) {
+                        validSheetsLoaded++;
+                    } else {
+                        delete newDb[sheetName];
                     }
                 });
 
                 if (validSheetsLoaded > 0) {
+                    // Thay thế hoàn toàn db cũ bằng db mới nạp (Chỉ giữ lại duy nhất dữ liệu của file vừa input)
+                    db = newDb;
                     saveToLocalStorage(); 
-                    alert("📥 Dữ liệu Excel mới đã được nạp thành công! Các tiến độ cũ của bạn đã được giữ nguyên."); 
+                    alert("📥 Dữ liệu Excel mới đã được nạp thành công!"); 
                     initSheetSelect();
                 } else { 
                     alert("Không tìm thấy dữ liệu hợp lệ trong tệp Excel!"); 
